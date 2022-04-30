@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using AsistenciaBack.Context;
 using AsistenciaBack.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AsistenciaBack.Controller;
 
@@ -53,6 +55,14 @@ public class UserController : ControllerBase
 		passwordSalt = hmac.Key;
 		passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
 
+	}
+	private static string CreateToken(User user)
+	{
+		var claims = new List<Claim>
+		{
+			new(ClaimTypes.Name, user.Email)
+		};
+		var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes()); // TODO token shit
 	}
 	private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
 	{
