@@ -22,7 +22,7 @@ public class UserController : ControllerBase
 		var user = await this._userManager.FindByIdAsync(request.Run);
 		if (user is null)
 		{
-			return this.BadRequest("(DEV) Usuario no existe.");
+			return this.BadRequest("(DEV) Usuario no existe");
 		}
 		var check = await this._userManager.CheckPasswordAsync(user, request.Password);
 		if (!check)
@@ -45,7 +45,8 @@ public class UserController : ControllerBase
 			expires: DateTime.UtcNow.AddHours(1),
 			signingCredentials: new(authSigningKey, SecurityAlgorithms.HmacSha512)
 		);
-		return this.Ok(new TokenDto {
+		return this.Ok(new TokenDto
+		{
 			Roles = roles,
 			Token = new JwtSecurityTokenHandler().WriteToken(token),
 		});
@@ -53,33 +54,58 @@ public class UserController : ControllerBase
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterDto request)
 	{
-		var check =
-			from u in this._context.Users
-			where u.Email == request.Email || u.Rut == request.Rut
-			select u;
-		if (check.Any())
+		var check = await this._userManager.FindByIdAsync(request.Rut);
+		if (check is not null)
 		{
-			return this.BadRequest("(DEV) Usuario ya existe.");
+			return this.BadRequest("(DEV) Usuario ya existe");
 		}
-		CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-		var user = new User
+		var user = new IdentityUser
 		{
 			Email = request.Email,
-			FullName = request.FullName,
-			PasswordHash = passwordHash,
-			PasswordSalt = passwordSalt,
-			Rut = request.Rut,
+			Id = request.Rut,
+			UserName = request.Name,
 		};
-		if (this._context.Users is null)
+		var result = await this._userManager.CreateAsync(user, request.Password);
+		if (!result.Succeeded)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) La lista de usuarios dentro del contexto es nula.");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al UserManager");
 		}
-		var add = await this._context.Users.AddAsync(user);
-		if (add.State != EntityState.Added)
+		switch (request.Role)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar al nuevo usuario dentro del contexto.");
+			case RegisterDto.Type.Student:
+				if (!await this._roleManager.RoleExistsAsync("Student"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Student"));
+				}
+				var studentResult = await this._userManager.AddToRoleAsync(user, "Student");
+				if (!studentResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de estudiante");
+				}
+				break;
+			case RegisterDto.Type.Teacher:
+				if (!await this._roleManager.RoleExistsAsync("Teacher"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Teacher"));
+				}
+				var teacherResult = await this._userManager.AddToRoleAsync(user, "Teacher");
+				if (!teacherResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de profesor");
+				}
+				break;
+			case RegisterDto.Type.Administrator:
+				if (!await this._roleManager.RoleExistsAsync("Administrator"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Administrator"));
+				}
+				var administratorResult = await this._userManager.AddToRoleAsync(user, "Administrator");
+				if (!administratorResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de administrador");
+				}
+				break;
 		}
-		var save = await this._context.SaveChangesAsync();
-		return save != 0 ? this.Ok("Usuario registrado con éxito.") : this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al guardar el usuario dentro de la base de datos.");
+		return this.Ok("Usuario creado con éxito");
 	}
 }
