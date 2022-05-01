@@ -53,7 +53,7 @@ public class UserController : ControllerBase
 		return this.Ok(this.CreateToken(user));
 	}
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public ActionResult Register([FromBody] RegisterDto request)
+	public async Task<ActionResult> Register([FromBody] RegisterDto request)
 	{
 		var check =
 			from u in this._context.Users
@@ -76,8 +76,13 @@ public class UserController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) La lista de usuarios dentro del contexto es nula.");
 		}
-		this._context.Users.AddAsync(user);
-		return this.Ok("Usuario registrado con éxito.");
+		var add = await this._context.Users.AddAsync(user);
+		if (add.State != EntityState.Added)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar al nuevo usuario dentro del contexto.");
+		}
+		var save = await this._context.SaveChangesAsync();
+		return save != 0 ? this.Ok("Usuario registrado con éxito.") : this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al guardar el usuario dentro de la base de datos.");
 	}
 	private string CreateToken(User user)
 	{
