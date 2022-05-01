@@ -1,56 +1,54 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using AsistenciaBack.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AsistenciaBack.Controller;
 
 [ApiController, Route("api/usuario")]
 public class UserController : ControllerBase
 {
-	private readonly AppDbContext _context;
 	private readonly IConfiguration _configuration;
-	public UserController(AppDbContext context, IConfiguration configuration)
+	private readonly RoleManager<IdentityRole> _roleManager;
+	private readonly UserManager<IdentityUser> _userManager;
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
 	{
-		this._context = context;
 		this._configuration = configuration;
-	}
-	private static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-	{
-		using var hmac = new HMACSHA512();
-		passwordSalt = hmac.Key;
-		passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-
-	}
-	private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-	{
-		using var hmac = new HMACSHA512(passwordSalt);
-		var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-		return computedHash.SequenceEqual(passwordHash);
+		this._roleManager = roleManager;
+		this._userManager = userManager;
 	}
 	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public ActionResult Login([FromBody] LoginDto request)
+	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
 	{
-		var check =
-			from u in this._context.Users
-			where u.Email == request.Email
-			select u;
-		if (!check.Any())
+		var user = await this._userManager.FindByIdAsync(request.Run);
+		if (user is null)
 		{
 			return this.BadRequest("(DEV) Usuario no existe.");
 		}
-		var user = check.First();
-		if (user.PasswordHash is null || user.PasswordSalt is null)
+		var check = await this._userManager.CheckPasswordAsync(user, request.Password);
+		if (!check)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) PasswordHash o PasswordSalt nulos.");
+			return this.BadRequest("(DEV) Contraseña incorrecta");
 		}
-		if (!VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+		var roles = await this._userManager.GetRolesAsync(user);
+		var claims = new List<Claim> {
+			new(JwtRegisteredClaimNames.Jti, user.Id),
+			new(JwtRegisteredClaimNames.Email, user.Email),
+			new(JwtRegisteredClaimNames.Name, user.UserName)
+		};
+		foreach (var role in roles)
 		{
-			return this.BadRequest("(DEV) Contraseña incorrecta.");
+			claims.Add(new(ClaimTypes.Role, role));
 		}
-		return this.Ok(this.CreateToken(user));
+		var authSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(this._configuration.GetSection("Token").Value));
+		var token = new JwtSecurityToken(
+			claims: claims,
+			expires: DateTime.UtcNow.AddHours(1),
+			signingCredentials: new(authSigningKey, SecurityAlgorithms.HmacSha512)
+		);
+		return this.Ok(new TokenDto {
+			Roles = roles,
+			Token = new JwtSecurityTokenHandler().WriteToken(token),
+		});
 	}
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterDto request)
@@ -83,21 +81,5 @@ public class UserController : ControllerBase
 		}
 		var save = await this._context.SaveChangesAsync();
 		return save != 0 ? this.Ok("Usuario registrado con éxito.") : this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al guardar el usuario dentro de la base de datos.");
-	}
-	private string CreateToken(User user)
-	{
-		var claims = new List<Claim>
-			{
-				new(ClaimTypes.Name, user.Email)
-			};
-		var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(this._configuration.GetSection("Token").Value));
-		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-		var token = new JwtSecurityToken(
-			claims: claims,
-			expires: DateTime.Now.AddHours(1),
-			signingCredentials: creds
-		);
-		var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-		return jwt;
 	}
 }

@@ -1,7 +1,9 @@
 global using AsistenciaBack.Context;
+global using AsistenciaBack.Model;
+global using Microsoft.AspNetCore.Identity;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -21,8 +23,7 @@ builder.Services.AddSwaggerGen(options =>
 		Scheme = "Bearer",
 		Type = SecuritySchemeType.ApiKey
 	});
-	options.AddSecurityRequirement(
-		new()
+	options.AddSecurityRequirement(new()
 		{
 			{
 				new()
@@ -42,6 +43,19 @@ builder.Services.AddSwaggerGen(options =>
 	);
 	options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+	options.SignIn.RequireConfirmedAccount = false;
+	options.SignIn.RequireConfirmedEmail = false;
+	options.SignIn.RequireConfirmedPhoneNumber = false;
+	options.Lockout.DefaultLockoutTimeSpan = TimeSpan.Zero;
+	options.Password.RequireDigit = false;
+	options.Password.RequiredLength = 0;
+	options.Password.RequiredUniqueChars = 0;
+	options.Password.RequireNonAlphanumeric = false;
+	options.Password.RequireUppercase = false;
+	options.Password.RequireLowercase = false;
+}).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
 	options.TokenValidationParameters = new()
