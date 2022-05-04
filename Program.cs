@@ -67,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 	};
 });
 // TODO This thing is only local
-builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.WithOrigins("https://localhost:4200/login", "https://127.0.0.1:4200/login").AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
 
 var app = builder.Build();
 
