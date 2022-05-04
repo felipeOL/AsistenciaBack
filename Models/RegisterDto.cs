@@ -2,7 +2,8 @@ namespace AsistenciaBack.Model;
 
 public class RegisterDto
 {
-	public enum Type {
+	public enum Type
+	{
 		Student,
 		Teacher,
 		Administrator,
