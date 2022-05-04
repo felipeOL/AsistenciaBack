@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AsistenciaBack.Controller;
@@ -16,7 +17,7 @@ public class UserController : ControllerBase
 		this._roleManager = roleManager;
 		this._userManager = userManager;
 	}
-	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[EnableCors("FrontendCors"), HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.Rut);
@@ -51,7 +52,7 @@ public class UserController : ControllerBase
 			Token = new JwtSecurityTokenHandler().WriteToken(token),
 		});
 	}
-	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterDto request)
 	{
 		var check = await this._userManager.FindByIdAsync(request.Rut);

@@ -66,6 +66,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 		ValidateAudience = false
 	};
 });
+// TODO This thing is only local
+builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();
 
@@ -74,6 +76,8 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+app.UseCors("FrontendCors");
 
 app.UseHttpsRedirection();
 
