@@ -19,7 +19,7 @@ public class UserController : ControllerBase
 	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
 	{
-		var user = await this._userManager.FindByIdAsync(request.Run);
+		var user = await this._userManager.FindByIdAsync(request.Rut);
 		if (user is null)
 		{
 			return this.BadRequest("(DEV) Usuario no existe");
