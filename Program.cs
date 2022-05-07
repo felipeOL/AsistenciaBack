@@ -11,10 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 string? connection;
-if (builder.Environment.IsDevelopment()) {
+if (builder.Environment.IsDevelopment())
+{
 	connection = builder.Configuration.GetConnectionString("Dev");
 	builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
-} else {
+}
+else
+{
 	connection = builder.Configuration.GetConnectionString("Prod");
 }
 
