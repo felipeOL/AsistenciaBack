@@ -10,8 +10,14 @@ using Swashbuckle.AspNetCore.Filters;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-var connection = builder.Configuration.GetConnectionString("Dev");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+string? connection;
+if (builder.Environment.IsDevelopment()) {
+	connection = builder.Configuration.GetConnectionString("Dev");
+	builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+} else {
+	connection = builder.Configuration.GetConnectionString("Prod");
+}
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -79,7 +85,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("FrontendCors");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
