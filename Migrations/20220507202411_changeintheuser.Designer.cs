@@ -3,6 +3,7 @@ using System;
 using AsistenciaBack.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,45 +11,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AsistenciaBack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220507202411_changeintheuser")]
+    partial class changeintheuser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "6.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            modelBuilder.Entity("AsistenciaBack.Model.Curso", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Bloque")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Codigo")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Seccion")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Semestre")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Cursos");
-                });
 
             modelBuilder.Entity("AsistenciaBack.Model.User", b =>
                 {

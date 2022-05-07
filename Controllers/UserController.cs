@@ -10,8 +10,8 @@ public class UserController : ControllerBase
 {
 	private readonly IConfiguration _configuration;
 	private readonly RoleManager<IdentityRole> _roleManager;
-	private readonly UserManager<IdentityUser> _userManager;
-	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
+	private readonly UserManager<User> _userManager;
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
 	{
 		this._configuration = configuration;
 		this._roleManager = roleManager;
@@ -20,7 +20,7 @@ public class UserController : ControllerBase
 	[EnableCors("FrontendCors"), HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
 	{
-		var user = await this._userManager.FindByIdAsync(request.Rut);
+		var user = await this._userManager.FindByIdAsync(request.Email);
 		if (user is null)
 		{
 			return this.BadRequest("(DEV) Usuario no existe");
@@ -33,7 +33,6 @@ public class UserController : ControllerBase
 		var roles = await this._userManager.GetRolesAsync(user);
 		var claims = new List<Claim> {
 			new(JwtRegisteredClaimNames.Jti, user.Id),
-			new(JwtRegisteredClaimNames.Email, user.Email),
 			new(JwtRegisteredClaimNames.Name, user.UserName)
 		};
 		foreach (var role in roles)
@@ -55,15 +54,15 @@ public class UserController : ControllerBase
 	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterDto request)
 	{
-		var check = await this._userManager.FindByIdAsync(request.Rut);
+		var check = await this._userManager.FindByIdAsync(request.Email);
 		if (check is not null)
 		{
 			return this.BadRequest("(DEV) Usuario ya existe");
 		}
-		var user = new IdentityUser
+		var user = new User
 		{
-			Email = request.Email,
-			Id = request.Rut,
+			Rut = request.Rut,
+			Id = request.Email,
 			UserName = request.Name,
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);

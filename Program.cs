@@ -52,7 +52,7 @@ builder.Services.AddSwaggerGen(options =>
 	);
 	options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
 	options.SignIn.RequireConfirmedAccount = false;
 	options.SignIn.RequireConfirmedEmail = false;
