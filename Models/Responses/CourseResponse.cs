@@ -1,17 +1,17 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Response;
 
 public class CourseResponse
 {
-	[JsonProperty("código")]
+	[JsonPropertyName("código")]
 	public string Code { get; set; } = string.Empty;
-	[JsonProperty("nombre")]
+	[JsonPropertyName("nombre")]
 	public string Name { get; set; } = string.Empty;
-	[JsonProperty("sección")]
+	[JsonPropertyName("sección")]
 	public string Section { get; set; } = string.Empty;
-	[JsonProperty("semestre")]
+	[JsonPropertyName("semestre")]
 	public string Semester { get; set; } = string.Empty;
-	[JsonProperty("bloque")]
+	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
 }

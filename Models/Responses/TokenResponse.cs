@@ -1,11 +1,11 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Response;
 
 public class TokenResponse
 {
-	[JsonProperty("roles")]
+	[JsonPropertyName("roles")]
 	public IList<string>? Roles { get; set; }
-	[JsonProperty("Token")]
+	[JsonPropertyName("Token")]
 	public string Token { get; set; } = string.Empty;
 }

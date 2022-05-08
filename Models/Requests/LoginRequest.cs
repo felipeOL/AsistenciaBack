@@ -1,11 +1,11 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Request;
 
 public class LoginRequest
 {
-	[JsonProperty("email")]
+	[JsonPropertyName("email")]
 	public string Email { get; set; } = string.Empty;
-	[JsonProperty("contraseña")]
+	[JsonPropertyName("contraseña")]
 	public string Password { get; set; } = string.Empty;
 }

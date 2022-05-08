@@ -1,17 +1,17 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Request;
 
 public class RegisterRequest
 {
-	[JsonProperty("email")]
+	[JsonPropertyName("email")]
 	public string Email { get; set; } = string.Empty;
-	[JsonProperty("nombre")]
+	[JsonPropertyName("nombre")]
 	public string Name { get; set; } = string.Empty;
-	[JsonProperty("contraseña")]
+	[JsonPropertyName("contraseña")]
 	public string Password { get; set; } = string.Empty;
-	[JsonProperty("rut")]
+	[JsonPropertyName("rut")]
 	public string Rut { get; set; } = string.Empty;
-	[JsonProperty("rol")]
+	[JsonPropertyName("rol")]
 	public AccountType Role { get; set; }
 }

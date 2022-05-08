@@ -1,15 +1,15 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Request;
 
 public class ClazzRequest
 {
-	[JsonProperty("id_curso")]
+	[JsonPropertyName("id_curso")]
 	public int CourseId { get; set; }
-	[JsonProperty("sala")]
+	[JsonPropertyName("sala")]
 	public string Room { get; set; } = string.Empty;
-	[JsonProperty("modalidad")]
+	[JsonPropertyName("modalidad")]
 	public string Mode { get; set; } = string.Empty;
-	[JsonProperty("bloque")]
+	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
 }
