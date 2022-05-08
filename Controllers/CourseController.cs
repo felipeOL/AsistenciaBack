@@ -18,7 +18,7 @@ public class CourseController : ControllerBase
 		this._userManager = userManager;
 		this._mapper = mapper;
 	}
-	[HttpPost]
+	[HttpPost, Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest courseRequest)
 	{
 		var user = await this._userManager.FindByIdAsync(courseRequest.ProfessorId);
@@ -46,7 +46,7 @@ public class CourseController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok("(DEV) Curso guardado con éxito");
 	}
-	[HttpGet("todos")]
+	[HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public ActionResult<IEnumerable<CourseResponse>> GetAllCoursesWithProfessors()
 	{
 		if (this._context.Courses is null)

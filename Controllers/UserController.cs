@@ -8,7 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AsistenciaBack.Controller;
 
-[ApiController, Route("api/usuario")]
+[ApiController, EnableCors("FrontendCors"), Route("api/usuario")]
 public class UserController : ControllerBase
 {
 	private readonly IConfiguration _configuration;
@@ -22,7 +22,7 @@ public class UserController : ControllerBase
 		this._userManager = userManager;
 		this._mapper = mapper;
 	}
-	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
 	{
 		var check = await this._userManager.FindByIdAsync(request.Email);
@@ -79,7 +79,7 @@ public class UserController : ControllerBase
 		}
 		return this.Ok("(DEV) Usuario creado con éxito");
 	}
-	[EnableCors("FrontendCors"), HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.Email);
