@@ -11,4 +11,5 @@ public class Curso
     public string Semestre {get; set;} = string.Empty;
     public string Bloque {get; set;} = string.Empty;
     public virtual ICollection<User> Users{get; set;}=new HashSet<User>();
+	public virtual ICollection<Clase> Clases { get; set; } = new HashSet<Clase>();
 }
