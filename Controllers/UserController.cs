@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AsistenciaBack.Controller;
 
@@ -108,4 +109,10 @@ public class UserController : ControllerBase
 		}
 		return this.Ok("Usuario creado con éxito");
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("GetAllUsers"), EnableCors("FrontendCors")]
+    public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
+    {
+        //ojo con las relaciones circulares
+        return this._userManager.Users.ToList();
+    }
 }
