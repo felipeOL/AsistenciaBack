@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AsistenciaBack.Controller;
 
@@ -53,6 +54,7 @@ public class CourseController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
 		}
-		return this._context.Courses.Select(c => this._mapper.Map<CourseResponse>(c)).ToList();
+		var courses = this._context.Courses.Include(c => c.Users).ToList();
+		return this.Ok(this._mapper.Map<IEnumerable<CourseResponse>>(courses));
 	}
 }

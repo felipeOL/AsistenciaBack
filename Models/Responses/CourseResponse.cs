@@ -14,4 +14,6 @@ public class CourseResponse
 	public string Semester { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
+	[JsonPropertyName("usuarios")]
+	public List<UserResponse>? UserResponses { get; set; }
 }
