@@ -6,6 +6,6 @@ public class TokenResponse
 {
 	[JsonPropertyName("roles")]
 	public IList<string>? Roles { get; set; }
-	[JsonPropertyName("Token")]
+	[JsonPropertyName("token")]
 	public string Token { get; set; } = string.Empty;
 }

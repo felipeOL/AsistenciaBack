@@ -4,8 +4,8 @@ namespace AsistenciaBack.Model.Response;
 
 public class UserResponse
 {
-	[JsonPropertyName("id")]
-	public string Id { get; set; } = string.Empty;
+	[JsonPropertyName("email")]
+	public string Email { get; set; } = string.Empty;
 	[JsonPropertyName("nombre")]
 	public string UserName { get; set; } = string.Empty;
 	[JsonPropertyName("rut")]

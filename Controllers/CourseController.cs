@@ -47,7 +47,7 @@ public class CourseController : ControllerBase
 		return this.Ok("(DEV) Curso guardado con éxito");
 	}
 	[HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public ActionResult<IEnumerable<CourseResponse>> GetAllCoursesWithProfessors()
+	public ActionResult<IEnumerable<CourseResponse>> GetAllCourses()
 	{
 		if (this._context.Courses is null)
 		{

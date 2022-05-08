@@ -45,4 +45,13 @@ public class ClazzController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok("(DEV) Clase guardada con éxito");
 	}
+	[HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public ActionResult<IEnumerable<ClazzResponse>> GetAllClazzs()
+	{
+		if (this._context.Clazzs is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de clases nula");
+		}
+		return this._context.Clazzs.Select(c => this._mapper.Map<ClazzResponse>(c)).ToList();
+	}
 }

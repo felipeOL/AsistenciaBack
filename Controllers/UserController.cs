@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,7 @@ public class UserController : ControllerBase
 		{
 			Rut = request.Rut,
 			Id = request.Email,
+			Email = request.Email,
 			UserName = request.Name,
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);
@@ -112,5 +114,10 @@ public class UserController : ControllerBase
 			Roles = roles,
 			Token = new JwtSecurityTokenHandler().WriteToken(token),
 		});
+	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public ActionResult<IEnumerable<UserResponse>> GetAllUsers()
+	{
+		return this._userManager.Users.Select(u => this._mapper.Map<UserResponse>(u)).ToList();
 	}
 }

@@ -8,5 +8,6 @@ public class DomainToResponseMappingProfile : Profile
 	{
 		this.CreateMap<Course, CourseResponse>();
 		this.CreateMap<Clazz, ClazzResponse>();
+		this.CreateMap<User, UserResponse>();
 	}
 }
