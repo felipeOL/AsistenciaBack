@@ -35,4 +35,10 @@ public class ClaseController: ControllerBase
 		await this._context.SaveChangesAsync();// se aguada ne la DB de manera asincrona
 		return this.Ok("se guardo con exito");// retornamos un mensaje
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("GetAllClases"), EnableCors("FrontendCors")]
+    public async Task<ActionResult<IEnumerable<Clase>>> GetAllClases()
+    {
+        //ojo con las relaciones circulares
+        return this._context.Clases.Include(c => c.Curso).ToList();
+    }
 }
