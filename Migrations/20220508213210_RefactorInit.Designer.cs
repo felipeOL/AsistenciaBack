@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AsistenciaBack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20220508024214_teacherAddedToCursos")]
-    partial class teacherAddedToCursos
+    [Migration("20220508213210_RefactorInit")]
+    partial class RefactorInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,58 +21,63 @@ namespace AsistenciaBack.Migrations
                 .HasAnnotation("ProductVersion", "6.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("AsistenciaBack.Model.Clase", b =>
+            modelBuilder.Entity("AsistenciaBack.Model.Clazz", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Bloque")
+                    b.Property<string>("Block")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Modalidad")
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Mode")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Sala")
+                    b.Property<string>("Room")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Clases");
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("clase");
                 });
 
-            modelBuilder.Entity("AsistenciaBack.Model.Curso", b =>
+            modelBuilder.Entity("AsistenciaBack.Model.Course", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Bloque")
+                    b.Property<string>("Block")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Codigo")
+                    b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Nombre")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Seccion")
+                    b.Property<string>("Section")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Semestre")
+                    b.Property<string>("Semester")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cursos");
+                    b.ToTable("curso");
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.User", b =>
@@ -143,19 +148,19 @@ namespace AsistenciaBack.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("CursoUser", b =>
+            modelBuilder.Entity("CourseUser", b =>
                 {
-                    b.Property<int>("CursosId")
+                    b.Property<int>("CoursesId")
                         .HasColumnType("int");
 
                     b.Property<string>("UsersId")
                         .HasColumnType("varchar(255)");
 
-                    b.HasKey("CursosId", "UsersId");
+                    b.HasKey("CoursesId", "UsersId");
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("CursoUser");
+                    b.ToTable("CourseUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -286,11 +291,20 @@ namespace AsistenciaBack.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("CursoUser", b =>
+            modelBuilder.Entity("AsistenciaBack.Model.Clazz", b =>
                 {
-                    b.HasOne("AsistenciaBack.Model.Curso", null)
+                    b.HasOne("AsistenciaBack.Model.Course", "Course")
+                        .WithMany("Clazzs")
+                        .HasForeignKey("CourseId");
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("CourseUser", b =>
+                {
+                    b.HasOne("AsistenciaBack.Model.Course", null)
                         .WithMany()
-                        .HasForeignKey("CursosId")
+                        .HasForeignKey("CoursesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -350,6 +364,11 @@ namespace AsistenciaBack.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AsistenciaBack.Model.Course", b =>
+                {
+                    b.Navigation("Clazzs");
                 });
 #pragma warning restore 612, 618
         }

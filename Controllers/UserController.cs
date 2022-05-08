@@ -1,7 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AutoMapper;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AsistenciaBack.Controller;
 
@@ -11,14 +14,73 @@ public class UserController : ControllerBase
 	private readonly IConfiguration _configuration;
 	private readonly RoleManager<IdentityRole> _roleManager;
 	private readonly UserManager<User> _userManager;
-	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
+	private readonly IMapper _mapper;
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IMapper mapper)
 	{
 		this._configuration = configuration;
 		this._roleManager = roleManager;
 		this._userManager = userManager;
+		this._mapper = mapper;
+	}
+	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
+	{
+		var check = await this._userManager.FindByIdAsync(request.Email);
+		if (check is not null)
+		{
+			return this.BadRequest("(DEV) Usuario ya existe");
+		}
+		var user = new User
+		{
+			Rut = request.Rut,
+			Id = request.Email,
+			UserName = request.Name,
+		};
+		var result = await this._userManager.CreateAsync(user, request.Password);
+		if (!result.Succeeded)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al UserManager");
+		}
+		switch (request.Role)
+		{
+			case AccountType.Student:
+				if (!await this._roleManager.RoleExistsAsync("Student"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Student"));
+				}
+				var studentResult = await this._userManager.AddToRoleAsync(user, "Student");
+				if (!studentResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de estudiante");
+				}
+				break;
+			case AccountType.Teacher:
+				if (!await this._roleManager.RoleExistsAsync("Teacher"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Teacher"));
+				}
+				var teacherResult = await this._userManager.AddToRoleAsync(user, "Teacher");
+				if (!teacherResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de profesor");
+				}
+				break;
+			case AccountType.Administrator:
+				if (!await this._roleManager.RoleExistsAsync("Administrator"))
+				{
+					_ = await this._roleManager.CreateAsync(new("Administrator"));
+				}
+				var administratorResult = await this._userManager.AddToRoleAsync(user, "Administrator");
+				if (!administratorResult.Succeeded)
+				{
+					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de administrador");
+				}
+				break;
+		}
+		return this.Ok("(DEV) Usuario creado con éxito");
 	}
 	[EnableCors("FrontendCors"), HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
+	public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.Email);
 		if (user is null)
@@ -45,67 +107,10 @@ public class UserController : ControllerBase
 			expires: DateTime.UtcNow.AddHours(1),
 			signingCredentials: new(authSigningKey, SecurityAlgorithms.HmacSha512)
 		);
-		return this.Ok(new TokenDto
+		return this.Ok(new TokenResponse
 		{
 			Roles = roles,
 			Token = new JwtSecurityTokenHandler().WriteToken(token),
 		});
-	}
-	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult> Register([FromBody] RegisterDto request)
-	{
-		var check = await this._userManager.FindByIdAsync(request.Email);
-		if (check is not null)
-		{
-			return this.BadRequest("(DEV) Usuario ya existe");
-		}
-		var user = new User
-		{
-			Rut = request.Rut,
-			Id = request.Email,
-			UserName = request.Name,
-		};
-		var result = await this._userManager.CreateAsync(user, request.Password);
-		if (!result.Succeeded)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al UserManager");
-		}
-		switch (request.Role)
-		{
-			case RegisterDto.Type.Student:
-				if (!await this._roleManager.RoleExistsAsync("Student"))
-				{
-					_ = await this._roleManager.CreateAsync(new("Student"));
-				}
-				var studentResult = await this._userManager.AddToRoleAsync(user, "Student");
-				if (!studentResult.Succeeded)
-				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de estudiante");
-				}
-				break;
-			case RegisterDto.Type.Teacher:
-				if (!await this._roleManager.RoleExistsAsync("Teacher"))
-				{
-					_ = await this._roleManager.CreateAsync(new("Teacher"));
-				}
-				var teacherResult = await this._userManager.AddToRoleAsync(user, "Teacher");
-				if (!teacherResult.Succeeded)
-				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de profesor");
-				}
-				break;
-			case RegisterDto.Type.Administrator:
-				if (!await this._roleManager.RoleExistsAsync("Administrator"))
-				{
-					_ = await this._roleManager.CreateAsync(new("Administrator"));
-				}
-				var administratorResult = await this._userManager.AddToRoleAsync(user, "Administrator");
-				if (!administratorResult.Succeeded)
-				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de administrador");
-				}
-				break;
-		}
-		return this.Ok("Usuario creado con éxito");
 	}
 }
