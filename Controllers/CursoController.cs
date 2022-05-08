@@ -46,7 +46,13 @@ public class CursoController: ControllerBase
     [Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("GetAllCursos"), EnableCors("FrontendCors")]
     public async Task<ActionResult<IEnumerable<Curso>>> GetAllCursos()
     {
-        //ojo con las relaciones circulares 
-        return this._context.Cursos.Include(c => c.Users).ToList();
+        //ojo con las relaciones circulares
+        return this._context.Cursos.Include(c => c.Users.Select(
+            (user) => new {
+                Rut = user.Rut,
+                Id = user.Id,
+                UserName = user.UserName
+            }
+        )).ToList();
     }
 }
