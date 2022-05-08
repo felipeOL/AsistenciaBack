@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AsistenciaBack.Controller;
 
-[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), ApiController, EnableCors("FrontendCors"), Route("api/curso")]//esto es para mapear el controlador
+[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), ApiController, EnableCors("FrontendCors"), Route("api/curso")]
 public class CourseController : ControllerBase
 {
 	private readonly AppDbContext _context;
