@@ -10,4 +10,5 @@ public class UserResponse
 	public string UserName { get; set; } = string.Empty;
 	[JsonPropertyName("rut")]
 	public string Rut { get; set; } = string.Empty;
+	public IList<string>? Roles { get; set; }
 }

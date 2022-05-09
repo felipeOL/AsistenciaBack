@@ -116,8 +116,17 @@ public class UserController : ControllerBase
 		});
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public ActionResult<IEnumerable<UserResponse>> GetAllUsers()
+	public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()
 	{
-		return this._userManager.Users.Select(u => this._mapper.Map<UserResponse>(u)).ToList();
+		var userResponses = new List<UserResponse>();
+		var users = this._userManager.Users.ToList();
+		foreach (var user in users)
+		{
+			var roles = await this._userManager.GetRolesAsync(user);
+			var userResponse = this._mapper.Map<UserResponse>(user);
+			userResponse.Roles = roles;
+			userResponses.Add(userResponse);
+		}
+		return userResponses;
 	}
 }
