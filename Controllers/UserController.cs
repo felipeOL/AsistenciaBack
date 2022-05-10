@@ -37,6 +37,7 @@ public class UserController : ControllerBase
 			Id = request.Email,
 			Email = request.Email,
 			Name = request.Name,
+			UserName = request.Rut
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);
 		if (!result.Succeeded)
