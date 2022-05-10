@@ -36,7 +36,7 @@ public class UserController : ControllerBase
 			Rut = request.Rut,
 			Id = request.Email,
 			Email = request.Email,
-			UserName = request.Name,
+			Name = request.Name,
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);
 		if (!result.Succeeded)
@@ -97,7 +97,7 @@ public class UserController : ControllerBase
 		var roles = await this._userManager.GetRolesAsync(user);
 		var claims = new List<Claim> {
 			new(JwtRegisteredClaimNames.Jti, user.Id),
-			new(JwtRegisteredClaimNames.Name, user.UserName)
+			new(JwtRegisteredClaimNames.Name, user.Name)
 		};
 		foreach (var role in roles)
 		{
