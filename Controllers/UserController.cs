@@ -125,7 +125,7 @@ public class UserController : ControllerBase
 		{
 			var roles = await this._userManager.GetRolesAsync(user);
 			var userResponse = this._mapper.Map<UserResponse>(user);
-			userResponse.Roles = roles;
+			userResponse.Role = roles[0];
 			userResponses.Add(userResponse);
 		}
 		return userResponses;
