@@ -26,18 +26,18 @@ public class UserController : ControllerBase
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
 	{
-		var check = await this._userManager.FindByIdAsync(request.Email);
+		var check = await this._userManager.FindByNameAsync(request.Email);
 		if (check is not null)
 		{
 			return this.BadRequest("(DEV) Usuario ya existe");
 		}
 		var user = new User
 		{
-			Rut = request.Rut,
 			Id = request.Email,
+			Rut = request.Rut,
+			UserName = request.Rut,
 			Email = request.Email,
-			Name = request.Name,
-			UserName = request.Email
+			Name = request.Name
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);
 		if (!result.Succeeded)
@@ -97,11 +97,8 @@ public class UserController : ControllerBase
 		}
 		var roles = await this._userManager.GetRolesAsync(user);
 		var claims = new List<Claim> {
-			new(JwtRegisteredClaimNames.Jti, user.Id),
-			new Claim(JwtRegisteredClaimNames.Email, user.Email),
-			new(JwtRegisteredClaimNames.Name, user.Name),
 			new Claim(ClaimTypes.Email, user.Email),
-			new Claim(ClaimTypes.Name, user.Name)
+			new Claim(ClaimTypes.Name, user.Id)
 		};
 		foreach (var role in roles)
 		{

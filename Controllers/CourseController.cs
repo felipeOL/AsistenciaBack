@@ -58,7 +58,7 @@ public class CourseController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
 		}
-		var currentUser = await this._userManager.FindByNameAsync(this.HttpContext.User.Identity.Name);
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		if (currentUser is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
