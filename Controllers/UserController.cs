@@ -98,7 +98,10 @@ public class UserController : ControllerBase
 		var roles = await this._userManager.GetRolesAsync(user);
 		var claims = new List<Claim> {
 			new(JwtRegisteredClaimNames.Jti, user.Id),
-			new(JwtRegisteredClaimNames.Name, user.Name)
+			new Claim(JwtRegisteredClaimNames.Email, user.Email),
+			new(JwtRegisteredClaimNames.Name, user.Name),
+			new Claim(ClaimTypes.Email, user.Email),
+			new Claim(ClaimTypes.Name, user.Name)
 		};
 		foreach (var role in roles)
 		{
