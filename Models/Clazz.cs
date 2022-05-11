@@ -15,5 +15,6 @@ public class Clazz
 	public string Mode { get; set; } = string.Empty;
 	[JsonPropertyName("bloque"), Required]
 	public string Block { get; set; } = string.Empty;
+	[JsonPropertyName("curso"), Required]
 	public virtual Course? Course { get; set; }
 }

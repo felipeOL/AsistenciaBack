@@ -6,11 +6,11 @@ public class CourseRequest
 {
 	[JsonPropertyName("id_profesor")]
 	public string ProfessorId { get; set; } = string.Empty;
-	[JsonPropertyName("código")]
+	[JsonPropertyName("codigo")]
 	public string Code { get; set; } = string.Empty;
 	[JsonPropertyName("nombre")]
 	public string Name { get; set; } = string.Empty;
-	[JsonPropertyName("sección")]
+	[JsonPropertyName("seccion")]
 	public string Section { get; set; } = string.Empty;
 	[JsonPropertyName("semestre")]
 	public string Semester { get; set; } = string.Empty;
