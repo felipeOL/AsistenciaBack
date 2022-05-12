@@ -26,7 +26,7 @@ public class UserController : ControllerBase
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
 	{
-		var check = await this._userManager.FindByNameAsync(request.Email);
+		var check = await this._userManager.FindByIdAsync(request.Email);
 		if (check is not null)
 		{
 			return this.BadRequest("(DEV) Usuario ya existe");
