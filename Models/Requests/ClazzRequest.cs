@@ -4,7 +4,7 @@ namespace AsistenciaBack.Model.Request;
 
 public class ClazzRequest
 {
-	[JsonPropertyName("id_curso")]
+	[JsonPropertyName("idcurso")]
 	public int CourseId { get; set; }
 	[JsonPropertyName("sala")]
 	public string Room { get; set; } = string.Empty;

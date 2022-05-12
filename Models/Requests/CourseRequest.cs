@@ -4,7 +4,7 @@ namespace AsistenciaBack.Model.Request;
 
 public class CourseRequest
 {
-	[JsonPropertyName("id_profesor")]
+	[JsonPropertyName("idprofesor")]
 	public string ProfessorId { get; set; } = string.Empty;
 	[JsonPropertyName("codigo")]
 	public string Code { get; set; } = string.Empty;
