@@ -19,7 +19,7 @@ public class CourseController : ControllerBase
 		this._userManager = userManager;
 		this._mapper = mapper;
 	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost, Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest courseRequest)
 	{
 		var user = await this._userManager.FindByIdAsync(courseRequest.ProfessorId);

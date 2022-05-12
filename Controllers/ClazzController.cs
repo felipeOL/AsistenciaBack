@@ -18,7 +18,7 @@ public class ClazzController : ControllerBase
 		this._userManager = userManager;
 		this._mapper = mapper;
 	}
-	[HttpPost, Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateClazz([FromBody] ClazzRequest clazzRequest)
 	{
 		if (this._context.Courses is null)
