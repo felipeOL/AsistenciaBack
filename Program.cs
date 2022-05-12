@@ -1,17 +1,29 @@
 global using AsistenciaBack.Context;
 global using AsistenciaBack.Model;
-global using Microsoft.AspNetCore.Identity;
-global using Microsoft.EntityFrameworkCore;
-global using Microsoft.IdentityModel.Tokens;
+global using AsistenciaBack.Model.Request;
+global using AsistenciaBack.Model.Response;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-var connection = builder.Configuration.GetConnectionString("Dev");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+string? connection;
+if (builder.Environment.IsDevelopment())
+{
+	connection = builder.Configuration.GetConnectionString("Dev");
+	builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
+}
+else
+{
+	connection = builder.Configuration.GetConnectionString("Prod");
+}
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -43,7 +55,7 @@ builder.Services.AddSwaggerGen(options =>
 	);
 	options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
 	options.SignIn.RequireConfirmedAccount = false;
 	options.SignIn.RequireConfirmedEmail = false;
@@ -66,7 +78,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 		ValidateAudience = false
 	};
 });
-// TODO This thing is only local
+
 builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();
@@ -79,7 +91,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("FrontendCors");
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 

@@ -1,70 +1,43 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AsistenciaBack.Controller;
 
-[ApiController, Route("api/usuario")]
+[ApiController, EnableCors("FrontendCors"), Route("api/usuario")]
 public class UserController : ControllerBase
 {
 	private readonly IConfiguration _configuration;
 	private readonly RoleManager<IdentityRole> _roleManager;
-	private readonly UserManager<IdentityUser> _userManager;
-	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager)
+	private readonly UserManager<User> _userManager;
+	private readonly IMapper _mapper;
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IMapper mapper)
 	{
 		this._configuration = configuration;
 		this._roleManager = roleManager;
 		this._userManager = userManager;
+		this._mapper = mapper;
 	}
-	[EnableCors("FrontendCors"), HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto request)
+	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
 	{
-		var user = await this._userManager.FindByIdAsync(request.Rut);
-		if (user is null)
-		{
-			return this.BadRequest("(DEV) Usuario no existe");
-		}
-		var check = await this._userManager.CheckPasswordAsync(user, request.Password);
-		if (!check)
-		{
-			return this.BadRequest("(DEV) Contraseña incorrecta");
-		}
-		var roles = await this._userManager.GetRolesAsync(user);
-		var claims = new List<Claim> {
-			new(JwtRegisteredClaimNames.Jti, user.Id),
-			new(JwtRegisteredClaimNames.Email, user.Email),
-			new(JwtRegisteredClaimNames.Name, user.UserName)
-		};
-		foreach (var role in roles)
-		{
-			claims.Add(new(ClaimTypes.Role, role));
-		}
-		var authSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(this._configuration.GetSection("Token").Value));
-		var token = new JwtSecurityToken(
-			claims: claims,
-			expires: DateTime.UtcNow.AddHours(1),
-			signingCredentials: new(authSigningKey, SecurityAlgorithms.HmacSha512)
-		);
-		return this.Ok(new TokenDto
-		{
-			Roles = roles,
-			Token = new JwtSecurityTokenHandler().WriteToken(token),
-		});
-	}
-	[EnableCors("FrontendCors"), HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult> Register([FromBody] RegisterDto request)
-	{
-		var check = await this._userManager.FindByIdAsync(request.Rut);
+		var check = await this._userManager.FindByNameAsync(request.Email);
 		if (check is not null)
 		{
 			return this.BadRequest("(DEV) Usuario ya existe");
 		}
-		var user = new IdentityUser
+		var user = new User
 		{
+			Id = request.Email,
+			Rut = request.Rut,
+			UserName = request.Rut,
 			Email = request.Email,
-			Id = request.Rut,
-			UserName = request.Name,
+			Name = request.Name
 		};
 		var result = await this._userManager.CreateAsync(user, request.Password);
 		if (!result.Succeeded)
@@ -73,7 +46,7 @@ public class UserController : ControllerBase
 		}
 		switch (request.Role)
 		{
-			case RegisterDto.Type.Student:
+			case AccountType.Student:
 				if (!await this._roleManager.RoleExistsAsync("Student"))
 				{
 					_ = await this._roleManager.CreateAsync(new("Student"));
@@ -84,7 +57,7 @@ public class UserController : ControllerBase
 					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de estudiante");
 				}
 				break;
-			case RegisterDto.Type.Teacher:
+			case AccountType.Teacher:
 				if (!await this._roleManager.RoleExistsAsync("Teacher"))
 				{
 					_ = await this._roleManager.CreateAsync(new("Teacher"));
@@ -95,7 +68,7 @@ public class UserController : ControllerBase
 					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de profesor");
 				}
 				break;
-			case RegisterDto.Type.Administrator:
+			case AccountType.Administrator:
 				if (!await this._roleManager.RoleExistsAsync("Administrator"))
 				{
 					_ = await this._roleManager.CreateAsync(new("Administrator"));
@@ -107,6 +80,54 @@ public class UserController : ControllerBase
 				}
 				break;
 		}
-		return this.Ok("Usuario creado con éxito");
+		return this.Ok("(DEV) Usuario creado con éxito");
+	}
+	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
+	{
+		var user = await this._userManager.FindByIdAsync(request.Email);
+		if (user is null)
+		{
+			return this.BadRequest("(DEV) Usuario no existe");
+		}
+		var check = await this._userManager.CheckPasswordAsync(user, request.Password);
+		if (!check)
+		{
+			return this.BadRequest("(DEV) Contraseña incorrecta");
+		}
+		var roles = await this._userManager.GetRolesAsync(user);
+		var claims = new List<Claim> {
+			new Claim(ClaimTypes.Email, user.Email),
+			new Claim(ClaimTypes.Name, user.Id)
+		};
+		foreach (var role in roles)
+		{
+			claims.Add(new(ClaimTypes.Role, role));
+		}
+		var authSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(this._configuration.GetSection("Token").Value));
+		var token = new JwtSecurityToken(
+			claims: claims,
+			expires: DateTime.UtcNow.AddHours(1),
+			signingCredentials: new(authSigningKey, SecurityAlgorithms.HmacSha512)
+		);
+		return this.Ok(new TokenResponse
+		{
+			Roles = roles,
+			Token = new JwtSecurityTokenHandler().WriteToken(token),
+		});
+	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<UserResponse>>> GetAllUsers()
+	{
+		var userResponses = new List<UserResponse>();
+		var users = this._userManager.Users.ToList();
+		foreach (var user in users)
+		{
+			var roles = await this._userManager.GetRolesAsync(user);
+			var userResponse = this._mapper.Map<UserResponse>(user);
+			userResponse.Role = roles[0];
+			userResponses.Add(userResponse);
+		}
+		return userResponses;
 	}
 }
