@@ -19,4 +19,6 @@ public class Clazz
 	public DateTime Date { get; set; }
 	[JsonPropertyName("curso"), Required]
 	public virtual Course? Course { get; set; }
+	[JsonPropertyName("usuarios"), Required]
+	public virtual ICollection<User> Users { get; set; } = new HashSet<User>();
 }

@@ -12,4 +12,6 @@ public class User : IdentityUser
 	public string Name { get; set; } = string.Empty;
 	[JsonPropertyName("cursos"), Required]
 	public virtual ICollection<Course> Courses { get; set; } = new HashSet<Course>();
+	[JsonPropertyName("clases"), Required]
+	public virtual ICollection<Clazz> Clazzs { get; set; } = new HashSet<Clazz>();
 }

@@ -60,7 +60,7 @@ public class ClazzController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
 		}
-		// Ver si el usuario actual es un profesor
+		// Ver si el usuario actual es un estudiante
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (!currentRoles.Contains("Student"))
 		{
@@ -94,5 +94,38 @@ public class ClazzController : ControllerBase
 			response.AddRange(classes);
 		}
 		return response;
+	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpPost("asistir"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult> Attend([FromBody] AttendRequest request)
+	{
+		// Ver si el usuario actual existe
+		if (this.HttpContext.User.Identity is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+		}
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
+		if (currentUser is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+		}
+		// Ver si el usuario actual es un estudiante
+		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
+		if (!currentRoles.Contains("Student"))
+		{
+			return this.BadRequest($"(DEV) El usuario con ID {currentUser.Id} no es un estudiante");
+		}
+		if (this._context.Clazzs is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de clases nula");
+		}
+		var @class = await this._context.Clazzs.FindAsync(request.ClazzId);
+		if (@class is null)
+		{
+			return this.BadRequest($"(DEV) La clase con ID {request.ClazzId} no existe");
+		}
+		@class.Users.Add(currentUser);
+		currentUser.Clazzs.Add(@class);
+		await this._context.SaveChangesAsync();
+		return this.Ok($"(DEV) Se marcó la asistencia del usuario con ID {currentUser.Id} a la clase {request.ClazzId}");
 	}
 }
