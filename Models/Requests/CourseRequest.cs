@@ -16,4 +16,6 @@ public class CourseRequest
 	public string Semester { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
+	[JsonPropertyName("anio")]
+	public DateTime Year { get; set; }
 }
