@@ -97,4 +97,52 @@ public class CourseController : ControllerBase
 			).ToList();
 		}
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("agregarEstudiante"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult> AddStudentToCourse([FromBody] AddStudentToCourse request)
+	{
+		// Ver si el usuario actual existe
+		if (this.HttpContext.User.Identity is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+		}
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
+		if (currentUser is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+		}
+		// Ver si el usuario actual es un profesor
+		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
+		if (!currentRoles.Contains("Teacher"))
+		{
+			return this.BadRequest($"(DEV) El usuario con ID {currentUser.Id} no es un profesor");
+		}
+		// Ver si el curso requerido existe con los cursos del profesor
+		if (this._context.Courses is null)
+		{
+			return this.BadRequest($"(DEV) El contexto tiene la lista de cursos nula");
+		}
+		var course =
+			this._context.Courses
+				.Include(c => c.Users)
+				.Where(c => c.Id == request.CourseId && c.Users.Contains(currentUser)).FirstOrDefault();
+		if (course is null)
+		{
+			return this.BadRequest($"(DEV) El curso con ID {request.CourseId} no existe");
+		}
+		// Ver que el estudiante exista
+		var student = await this._userManager.FindByIdAsync(request.StudentId);
+		if (student is null)
+		{
+			return this.BadRequest($"(DEV) El estudiante con ID {request.StudentId} no existe");
+		}
+		// Inscribir al estudiante SI ES QUE NO ESTÁ INSCRITO
+		if (course.Users.Contains(student))
+		{
+			return this.BadRequest($"(DEV) El estudiante con ID {student.Id} ya se encuentra inscrito al curso con ID {course.Id}");
+		}
+		course.Users.Add(student);
+		student.Courses.Add(course);
+		await this._context.SaveChangesAsync();
+		return this.Ok($"(DEV) Estudiante con ID {student.Id} inscrito con éxito al curso con ID {course.Id}");
+	}
 }
