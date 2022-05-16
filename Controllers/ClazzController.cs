@@ -21,18 +21,18 @@ public class ClazzController : ControllerBase
 	}
 	// TODO El profe debe agregar clases
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult> CreateClazz([FromBody] ClazzRequest clazzRequest)
+	public async Task<ActionResult> CreateClazz([FromBody] ClazzRequest request)
 	{
 		if (this._context.Courses is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
 		}
-		var course = await this._context.Courses.FindAsync(clazzRequest.CourseId);
+		var course = await this._context.Courses.FindAsync(request.CourseId);
 		if (course is null)
 		{
-			return this.BadRequest($"(DEV) El curso con ID {clazzRequest.CourseId} no existe");
+			return this.BadRequest($"(DEV) El curso con ID {request.CourseId} no existe");
 		}
-		var @class = this._mapper.Map<Clazz>(clazzRequest);
+		var @class = this._mapper.Map<Clazz>(request);
 		if (@class is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al mapear la clase");
@@ -45,12 +45,11 @@ public class ClazzController : ControllerBase
 		}
 		await this._context.Clazzs.AddAsync(@class);
 		await this._context.SaveChangesAsync();
-		return this.Ok("(DEV) Clase guardada con éxito");
+		return this.Ok($"(DEV) Clase con fecha {request.Date} guardada con éxito en el curso con ID {request.CourseId}");
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpGet("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromBody] GetStudentClassesFromDate request)
 	{
-		// Ver si el usuario actual existe
 		if (this.HttpContext.User.Identity is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
@@ -60,11 +59,10 @@ public class ClazzController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
 		}
-		// Ver si el usuario actual es un estudiante
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (!currentRoles.Contains("Student"))
 		{
-			return this.BadRequest($"(DEV) El usuario con ID {currentUser.Id} no es un estudiante");
+			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no es un estudiante");
 		}
 		if (this._context.Courses is null)
 		{
@@ -98,7 +96,6 @@ public class ClazzController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpPost("asistir"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Attend([FromBody] AttendRequest request)
 	{
-		// Ver si el usuario actual existe
 		if (this.HttpContext.User.Identity is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
@@ -108,11 +105,10 @@ public class ClazzController : ControllerBase
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
 		}
-		// Ver si el usuario actual es un estudiante
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (!currentRoles.Contains("Student"))
 		{
-			return this.BadRequest($"(DEV) El usuario con ID {currentUser.Id} no es un estudiante");
+			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no es un estudiante");
 		}
 		if (this._context.Clazzs is null)
 		{
@@ -122,6 +118,10 @@ public class ClazzController : ControllerBase
 		if (@class is null)
 		{
 			return this.BadRequest($"(DEV) La clase con ID {request.ClazzId} no existe");
+		}
+		if (@class.Users.Contains(currentUser))
+		{
+			return this.BadRequest($"(DEV) El estudiante con ID {currentUser.Id} ya asistió a la clase con ID {request.ClazzId}");
 		}
 		@class.Users.Add(currentUser);
 		currentUser.Clazzs.Add(@class);
