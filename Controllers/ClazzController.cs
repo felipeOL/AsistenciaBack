@@ -23,6 +23,28 @@ public class ClazzController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateClazz([FromBody] ClazzRequest request)
 	{
+		if (this.HttpContext.User.Identity is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+		}
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
+		if (currentUser is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+		}
+		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
+		if (currentRoles.Contains("Teacher"))
+		{
+			if (this._context.Courses is null)
+			{
+				return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
+			}
+			var teacherCourse = this._context.Courses.Include(c => c.Users).Include(c => c.Clazzs).Where(c => c.Users.Contains(currentUser) && c.Clazzs.Any(cz => cz.Id == request.CourseId)).FirstOrDefault();
+			if (teacherCourse is null)
+			{
+				return this.BadRequest($"(DEV) El profesor {currentUser.Id} no se encuentra asociado al curso con ID {request.CourseId}");
+			}
+		}
 		if (this._context.Courses is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
@@ -117,7 +139,7 @@ public class ClazzController : ControllerBase
 		var course = this._context.Courses.Include(c => c.Users).Include(c => c.Clazzs).Where(c => c.Users.Contains(currentUser) && c.Clazzs.Any(cz => cz.Id == request.ClazzId)).FirstOrDefault();
 		if (course is null)
 		{
-			return this.BadRequest($"(DEV) El estudiante {currentUser.Id} no se encuentra inscrito al curso asociado a la clase {request.ClazzId}");
+			return this.BadRequest($"(DEV) El estudiante {currentUser.Id} no se encuentra inscrito al curso asociado a la clase con ID {request.ClazzId}");
 		}
 		if (this._context.Clazzs is null)
 		{
