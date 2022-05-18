@@ -20,7 +20,7 @@ public class ClazzController : ControllerBase
 		this._mapper = mapper;
 	}
 	// TODO El profe debe agregar clases
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateClazz([FromBody] ClazzRequest request)
 	{
 		if (this._context.Courses is null)
