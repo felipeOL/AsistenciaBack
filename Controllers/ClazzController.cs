@@ -39,8 +39,14 @@ public class ClazzController : ControllerBase
 			{
 				return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
 			}
-			var teacherCourse = this._context.Courses.Include(c => c.Users).Include(c => c.Clazzs).Where(c => c.Users.Contains(currentUser) && c.Clazzs.Any(cz => cz.Id == request.CourseId)).FirstOrDefault();
-			if (teacherCourse is null)
+			var professor = this._context.Users.Include(u => u.Courses).Where(u => u.Id == currentUser.Id).FirstOrDefault();
+			if (professor is null)
+			{
+				return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) El profesor con ID {currentUser.Id} retornó nulo");
+			}
+			var professorCourses = professor.Courses;
+			var courseQuery = professorCourses.Where(pc => pc.Id == request.CourseId).FirstOrDefault();
+			if (courseQuery is null)
 			{
 				return this.BadRequest($"(DEV) El profesor {currentUser.Id} no se encuentra asociado al curso con ID {request.CourseId}");
 			}
