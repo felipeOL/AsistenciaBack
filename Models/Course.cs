@@ -19,6 +19,8 @@ public class Course
 	public string Semester { get; set; } = string.Empty;
 	[JsonPropertyName("bloque"), Required]
 	public string Block { get; set; } = string.Empty;
+	[JsonPropertyName("anio")]
+	public DateTime Year { get; set; }
 	[JsonPropertyName("usuarios"), Required]
 	public virtual ICollection<User> Users { get; set; } = new HashSet<User>();
 	[JsonPropertyName("clases"), Required]

@@ -3,6 +3,7 @@ using System;
 using AsistenciaBack.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AsistenciaBack.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220514194922_DateTimeToCourse")]
+    partial class DateTimeToCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,9 +33,6 @@ namespace AsistenciaBack.Migrations
 
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Mode")
                         .IsRequired()
@@ -154,21 +153,6 @@ namespace AsistenciaBack.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("ClazzUser", b =>
-                {
-                    b.Property<int>("ClazzsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("ClazzsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("ClazzUser");
                 });
 
             modelBuilder.Entity("CourseUser", b =>
@@ -323,21 +307,6 @@ namespace AsistenciaBack.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("ClazzUser", b =>
-                {
-                    b.HasOne("AsistenciaBack.Model.Clazz", null)
-                        .WithMany()
-                        .HasForeignKey("ClazzsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AsistenciaBack.Model.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("CourseUser", b =>

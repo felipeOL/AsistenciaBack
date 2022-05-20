@@ -17,13 +17,12 @@ string? connection;
 if (builder.Environment.IsDevelopment())
 {
 	connection = builder.Configuration.GetConnectionString("Dev");
-	builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
 }
 else
 {
 	connection = builder.Configuration.GetConnectionString("Prod");
 }
-
+builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

@@ -26,10 +26,10 @@ public class UserController : ControllerBase
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
 	{
-		var check = await this._userManager.FindByNameAsync(request.Email);
+		var check = await this._userManager.FindByIdAsync(request.Email);
 		if (check is not null)
 		{
-			return this.BadRequest("(DEV) Usuario ya existe");
+			return this.BadRequest($"(DEV) Usuario con ID {request.Email} ya existe");
 		}
 		var user = new User
 		{
@@ -42,7 +42,7 @@ public class UserController : ControllerBase
 		var result = await this._userManager.CreateAsync(user, request.Password);
 		if (!result.Succeeded)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al UserManager");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) Error al agregar el usuario con ID {request.Email} al UserManager");
 		}
 		switch (request.Role)
 		{
@@ -54,7 +54,7 @@ public class UserController : ControllerBase
 				var studentResult = await this._userManager.AddToRoleAsync(user, "Student");
 				if (!studentResult.Succeeded)
 				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de estudiante");
+					return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) Error al agregar el usuario con ID {request.Email} al rol de estudiante");
 				}
 				break;
 			case AccountType.Teacher:
@@ -65,7 +65,7 @@ public class UserController : ControllerBase
 				var teacherResult = await this._userManager.AddToRoleAsync(user, "Teacher");
 				if (!teacherResult.Succeeded)
 				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de profesor");
+					return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) Error al agregar el usuario con ID {request.Email} al rol de profesor");
 				}
 				break;
 			case AccountType.Administrator:
@@ -76,11 +76,11 @@ public class UserController : ControllerBase
 				var administratorResult = await this._userManager.AddToRoleAsync(user, "Administrator");
 				if (!administratorResult.Succeeded)
 				{
-					return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al agregar el usuario al rol de administrador");
+					return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) Error al agregar el usuario con ID {request.Email} al rol de administrador");
 				}
 				break;
 		}
-		return this.Ok("(DEV) Usuario creado con éxito");
+		return this.Ok($"(DEV) Usuario con ID {request.Email} creado con éxito");
 	}
 	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
 		var user = await this._userManager.FindByIdAsync(request.Email);
 		if (user is null)
 		{
-			return this.BadRequest("(DEV) Usuario no existe");
+			return this.BadRequest($"(DEV) Usuario con ID {request.Email} no existe");
 		}
 		var check = await this._userManager.CheckPasswordAsync(user, request.Password);
 		if (!check)

@@ -12,4 +12,6 @@ public class ClazzRequest
 	public string Mode { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
+	[JsonPropertyName("fecha")]
+	public DateTime Date { get; set; }
 }
