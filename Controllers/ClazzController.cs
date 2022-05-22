@@ -75,8 +75,8 @@ public class ClazzController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok($"(DEV) Clase con fecha {request.Date} guardada con éxito en el curso con ID {request.CourseId}");
 	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpGet("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromBody] GetStudentClassesFromDate request)
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromQuery] GetStudentClassesFromDate request)
 	{
 		if (this.HttpContext.User.Identity is null)
 		{
@@ -113,7 +113,8 @@ public class ClazzController : ControllerBase
 					Mode = c.Mode,
 					Block = c.Block,
 					Date = c.Date,
-					Course = this._mapper.Map<CourseResponse>(course)
+					Course = this._mapper.Map<CourseResponse>(course),
+					IsAttended = c.Users.Contains(currentUser),
 				}
 				)
 				.ToList();
