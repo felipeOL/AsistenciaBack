@@ -13,15 +13,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 string? connection;
 if (builder.Environment.IsDevelopment())
 {
-	connection = builder.Configuration.GetConnectionString("Dev");
+	connection = Environment.GetEnvironmentVariable("DATABASE_DEV");
+}
+else if (builder.Environment.IsStaging())
+{
+	connection = Environment.GetEnvironmentVariable("DATABASE_STAGE");
 }
 else
 {
-	connection = builder.Configuration.GetConnectionString("Prod");
+	connection = Environment.GetEnvironmentVariable("DATABASE_PROD");
+	builder.WebHost.UseKestrel(optinos =>
+	{
+		optinos.Listen(System.Net.IPAddress.Any, 7000);
+	}
+	);
 }
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -72,30 +83,42 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 	options.TokenValidationParameters = new()
 	{
 		ValidateIssuerSigningKey = true,
-		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Token").Value)),
+		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN") ?? "")),
 		ValidateIssuer = false,
 		ValidateAudience = false
 	};
 });
 
 builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+builder.Services.AddHttpsRedirection(options =>
+{
+	options.HttpsPort = 7000;
+});
+
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseCors("FrontendCors");
+app.UseHsts();
 
-//app.UseHttpsRedirection();
+app.UseRouting();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseCors("FrontendCors");
+
+app.UseEndpoints(endpoints =>
+{
+	endpoints.MapGet("/", async context =>
+	{
+		context.Response.Redirect("swagger");
+	});
+	endpoints.MapControllers();
+}
+);
 
 app.Run();
