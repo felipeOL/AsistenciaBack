@@ -75,7 +75,7 @@ public class ClazzController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok($"(DEV) Clase con fecha {request.Date} guardada con éxito en el curso con ID {request.CourseId}");
 	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromQuery] GetStudentClassesFromDate request)
 	{
 		if (this.HttpContext.User.Identity is null)
@@ -88,9 +88,9 @@ public class ClazzController : ControllerBase
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
 		}
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
-		if (!currentRoles.Contains("Student"))
+		if (!(currentRoles.Contains("Student") || currentRoles.Contains("Teacher")))
 		{
-			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no es un estudiante");
+			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no está autorizado para ver este recurso");
 		}
 		if (this._context.Courses is null)
 		{
