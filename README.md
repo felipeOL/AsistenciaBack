@@ -7,8 +7,8 @@
 2. git checkout dev
 3. dotnet restore
 4. dotnet tool install --global dotnet-ef
-5. nano ~/.bash_profile
-6. export PATH="$PATH:$HOME/.dotnet/tools/"
+5. export PATH="$PATH:$HOME/.dotnet/tools/"
+6. nano ~/.bash_profile
 7. export DATABASE_DEV='server=HOST;port=PORT;username=USERNAME;password=PASSWORD;database=DATABASE'
 8. export ASPNETCORE_ENVIRONMENT='Development'
 9. export TOKEN='TOKEN'
