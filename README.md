@@ -2,9 +2,9 @@
 * .NET 6 SDK
 * Base de datos MySQL
 
-# Instalación entorno de desarrollo en Linux
+# Instalación entorno de desarrollo (DEV) en Linux
 1. git clone https://github.com/felipeOL/AsistenciaBack.git
-2. git checkout stage (Opcional)
+2. git checkout dev
 3. dotnet restore
 4. dotnet tool install --global dotnet-ef
 5. nano ~/.bash_profile
