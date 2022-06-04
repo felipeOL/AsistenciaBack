@@ -31,6 +31,10 @@ else
 		optinos.Listen(System.Net.IPAddress.Any, 7000);
 	}
 	);
+	builder.Services.AddHttpsRedirection(options =>
+	{
+		options.HttpsPort = 7000;
+	});
 }
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
@@ -90,18 +94,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 
 builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder => _ = builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-builder.Services.AddHttpsRedirection(options =>
-{
-	options.HttpsPort = 7000;
-});
-
 
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHsts();
+if (app.Environment.IsProduction())
+{
+	app.UseHsts();
+}
 
 app.UseRouting();
 
