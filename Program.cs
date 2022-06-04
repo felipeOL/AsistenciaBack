@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-string? connection = "";
+string? connection = string.Empty;
 if (builder.Environment.IsDevelopment())
 {
 	connection = Environment.GetEnvironmentVariable("DATABASE_DEV");
@@ -102,6 +102,7 @@ app.UseSwaggerUI();
 
 if (app.Environment.IsProduction())
 {
+	app.UseHttpsRedirection();
 	app.UseHsts();
 }
 
