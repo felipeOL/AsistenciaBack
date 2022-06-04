@@ -25,76 +25,76 @@ public class ClazzController : ControllerBase
 	{
 		if (this.HttpContext.User.Identity is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
 		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		if (currentUser is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
 		}
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (currentRoles.Contains("Teacher"))
 		{
 			if (this._context.Courses is null)
 			{
-				return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
+				return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
 			}
 			var professor = this._context.Users.Include(u => u.Courses).Where(u => u.Id == currentUser.Id).FirstOrDefault();
 			if (professor is null)
 			{
-				return this.StatusCode(StatusCodes.Status500InternalServerError, $"(DEV) El profesor con ID {currentUser.Id} retornó nulo");
+				return this.StatusCode(StatusCodes.Status500InternalServerError, $"El profesor {currentUser.Id} retornó nulo");
 			}
 			var professorCourses = professor.Courses;
 			var courseQuery = professorCourses.Where(pc => pc.Id == request.CourseId).FirstOrDefault();
 			if (courseQuery is null)
 			{
-				return this.BadRequest($"(DEV) El profesor {currentUser.Id} no se encuentra asociado al curso con ID {request.CourseId}");
+				return this.BadRequest($"El profesor {currentUser.Id} no se encuentra asociado al curso {request.CourseId}");
 			}
 		}
 		if (this._context.Courses is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
 		}
 		var course = await this._context.Courses.FindAsync(request.CourseId);
 		if (course is null)
 		{
-			return this.BadRequest($"(DEV) El curso con ID {request.CourseId} no existe");
+			return this.BadRequest($"El curso {request.CourseId} no existe");
 		}
 		var @class = this._mapper.Map<Clazz>(request);
 		if (@class is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Error al mapear la clase");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "Error al mapear la clase");
 		}
 		@class.Course = course;
 		course.Clazzs.Add(@class);
 		if (this._context.Clazzs is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de clases nula");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de clases nula");
 		}
 		await this._context.Clazzs.AddAsync(@class);
 		await this._context.SaveChangesAsync();
-		return this.Ok($"(DEV) Clase con fecha {request.Date} guardada con éxito en el curso con ID {request.CourseId}");
+		return this.Ok($"Clase con fecha {request.Date} guardada con éxito en el curso {request.CourseId}");
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromQuery] GetStudentClassesFromDate request)
 	{
 		if (this.HttpContext.User.Identity is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, " El User.Identity es nulo");
 		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		if (currentUser is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, " Usuario actual no encontrado");
 		}
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (!(currentRoles.Contains("Student") || currentRoles.Contains("Teacher")))
 		{
-			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no está autorizado para ver este recurso");
+			return this.BadRequest($" El usuario actual {currentUser.Id} no está autorizado para ver este recurso");
 		}
 		if (this._context.Courses is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
 		}
 		var courses = this._context.Courses.Include(c => c.Users).Where(c => c.Users.Contains(currentUser)).ToList();
 		var response = new List<ClazzResponse>();
@@ -102,7 +102,7 @@ public class ClazzController : ControllerBase
 		{
 			if (this._context.Clazzs is null)
 			{
-				return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de clases nula");
+				return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de clases nula");
 			}
 			var classes = this._context.Clazzs
 				.Where(c => c.Course != null && c.Course.Id == course.Id && c.Date.Date >= request.Date.Date)
@@ -127,43 +127,43 @@ public class ClazzController : ControllerBase
 	{
 		if (this.HttpContext.User.Identity is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El User.Identity es nulo");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
 		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		if (currentUser is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) Usuario actual no encontrado");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
 		}
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (!currentRoles.Contains("Student"))
 		{
-			return this.BadRequest($"(DEV) El usuario actual con ID {currentUser.Id} no es un estudiante");
+			return this.BadRequest($"El usuario actual {currentUser.Id} no es un estudiante");
 		}
 		if (this._context.Courses is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de cursos nula");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
 		}
 		var course = this._context.Courses.Include(c => c.Users).Include(c => c.Clazzs).Where(c => c.Users.Contains(currentUser) && c.Clazzs.Any(cz => cz.Id == request.ClazzId)).FirstOrDefault();
 		if (course is null)
 		{
-			return this.BadRequest($"(DEV) El estudiante {currentUser.Id} no se encuentra inscrito al curso asociado a la clase con ID {request.ClazzId}");
+			return this.BadRequest($"El estudiante {currentUser.Id} no se encuentra inscrito al curso asociado a la clase {request.ClazzId}");
 		}
 		if (this._context.Clazzs is null)
 		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "(DEV) El contexto tiene la lista de clases nula");
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de clases nula");
 		}
 		var @class = this._context.Clazzs.Include(c => c.Users).Include(c => c.Course).Where(c => c.Id == request.ClazzId).FirstOrDefault();
 		if (@class is null)
 		{
-			return this.BadRequest($"(DEV) La clase con ID {request.ClazzId} no existe");
+			return this.BadRequest($"La clase  {request.ClazzId} no existe");
 		}
 		if (@class.Users.Contains(currentUser))
 		{
-			return this.BadRequest($"(DEV) El estudiante con ID {currentUser.Id} ya asistió a la clase con ID {request.ClazzId}");
+			return this.BadRequest($"El estudiante {currentUser.Id} ya asistió a la clase {request.ClazzId}");
 		}
 		@class.Users.Add(currentUser);
 		currentUser.Clazzs.Add(@class);
 		await this._context.SaveChangesAsync();
-		return this.Ok($"(DEV) Se marcó la asistencia del usuario con ID {currentUser.Id} a la clase con ID {request.ClazzId}");
+		return this.Ok($"Se marcó la asistencia del usuario {currentUser.Id} a la clase {request.ClazzId}");
 	}
 }
