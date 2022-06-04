@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-string? connection;
+string? connection = "";
 if (builder.Environment.IsDevelopment())
 {
 	connection = Environment.GetEnvironmentVariable("DATABASE_DEV");
@@ -23,7 +23,7 @@ else if (builder.Environment.IsStaging())
 {
 	connection = Environment.GetEnvironmentVariable("DATABASE_STAGE");
 }
-else
+else if (builder.Environment.IsProduction())
 {
 	connection = Environment.GetEnvironmentVariable("DATABASE_PROD");
 	builder.WebHost.UseKestrel(optinos =>
@@ -107,11 +107,11 @@ if (app.Environment.IsProduction())
 
 app.UseRouting();
 
+app.UseCors("FrontendCors");
+
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.UseCors("FrontendCors");
 
 app.UseEndpoints(endpoints =>
 {
