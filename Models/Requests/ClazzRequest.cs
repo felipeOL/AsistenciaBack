@@ -13,5 +13,5 @@ public class ClazzRequest
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
 	[JsonPropertyName("fecha")]
-	public DateTime Date { get; set; }
+	public DateTimeOffset Date { get; set; }
 }
