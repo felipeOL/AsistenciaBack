@@ -14,27 +14,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-string? connection = string.Empty;
+string? connection;
 if (builder.Environment.IsDevelopment())
 {
+	Console.WriteLine("Builder: I'm in development!");
 	connection = Environment.GetEnvironmentVariable("DATABASE_DEV");
 }
 else if (builder.Environment.IsStaging())
 {
+	Console.WriteLine("Builder: I'm in staging!");
 	connection = Environment.GetEnvironmentVariable("DATABASE_STAGE");
 }
-else if (builder.Environment.IsProduction())
+else
 {
+	Console.WriteLine("Builder: I'm in production!");
 	connection = Environment.GetEnvironmentVariable("DATABASE_PROD");
-	builder.WebHost.UseKestrel(optinos =>
-	{
-		optinos.Listen(System.Net.IPAddress.Any, 7000);
-	}
-	);
-	builder.Services.AddHttpsRedirection(options =>
-	{
-		options.HttpsPort = 7000;
-	});
 }
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
@@ -43,7 +37,7 @@ builder.Services.AddSwaggerGen(options =>
 {
 	options.AddSecurityDefinition("oauth2", new()
 	{
-		Description = "Uso: Bearer [TOKEN].",
+		Description = "Uso: Bearer TOKEN",
 		In = ParameterLocation.Header,
 		Name = "Authorization",
 		Scheme = "Bearer",
@@ -97,24 +91,18 @@ builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
-if (app.Environment.IsProduction())
-{
-	app.UseHttpsRedirection();
-	app.UseHsts();
-}
-
 app.UseRouting();
 
 app.UseCors("FrontendCors");
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
+app.UseEndpoints(async endpoints =>
 {
 	endpoints.MapGet("/", async context =>
 	{
