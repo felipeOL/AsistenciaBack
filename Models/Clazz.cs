@@ -16,7 +16,7 @@ public class Clazz
 	[JsonPropertyName("bloque"), Required]
 	public string Block { get; set; } = string.Empty;
 	[JsonPropertyName("fecha"), Required]
-	public DateTime Date { get; set; }
+	public DateTimeOffset Date { get; set; }
 	[JsonPropertyName("curso"), Required]
 	public virtual Course? Course { get; set; }
 	[JsonPropertyName("usuarios"), Required]

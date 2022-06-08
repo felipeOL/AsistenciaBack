@@ -13,7 +13,9 @@ public class ClazzResponse
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
 	[JsonPropertyName("fecha")]
-	public DateTime Date { get; set; }
+	public DateTimeOffset Date { get; set; }
+	[JsonPropertyName("asistio")]
+	public bool IsAttended { get; set; }
 	[JsonPropertyName("curso")]
 	public CourseResponse? Course { get; set; }
 }

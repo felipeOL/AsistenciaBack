@@ -17,5 +17,5 @@ public class CourseRequest
 	[JsonPropertyName("bloque")]
 	public string Block { get; set; } = string.Empty;
 	[JsonPropertyName("anio")]
-	public DateTime Year { get; set; }
+	public DateTimeOffset Year { get; set; }
 }

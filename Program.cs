@@ -13,22 +13,31 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 string? connection;
 if (builder.Environment.IsDevelopment())
 {
-	connection = builder.Configuration.GetConnectionString("Dev");
+	Console.WriteLine("Builder: I'm in development!");
+	connection = Environment.GetEnvironmentVariable("DATABASE_DEV");
+}
+else if (builder.Environment.IsStaging())
+{
+	Console.WriteLine("Builder: I'm in staging!");
+	connection = Environment.GetEnvironmentVariable("DATABASE_STAGE");
 }
 else
 {
-	connection = builder.Configuration.GetConnectionString("Prod");
+	Console.WriteLine("Builder: I'm in production!");
+	connection = Environment.GetEnvironmentVariable("DATABASE_PROD");
 }
+
 builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connection, ServerVersion.AutoDetect(connection)));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
 	options.AddSecurityDefinition("oauth2", new()
 	{
-		Description = "Uso: Bearer [TOKEN].",
+		Description = "Uso: Bearer TOKEN",
 		In = ParameterLocation.Header,
 		Name = "Authorization",
 		Scheme = "Bearer",
@@ -72,7 +81,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 	options.TokenValidationParameters = new()
 	{
 		ValidateIssuerSigningKey = true,
-		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration.GetSection("Token").Value)),
+		IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("TOKEN") ?? "")),
 		ValidateIssuer = false,
 		ValidateAudience = false
 	};
@@ -82,20 +91,25 @@ builder.Services.AddCors(options => options.AddPolicy("FrontendCors", builder =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+app.UseRouting();
 
 app.UseCors("FrontendCors");
 
-//app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(async endpoints =>
+{
+	endpoints.MapGet("/", async context =>
+	{
+		context.Response.Redirect("swagger");
+	});
+	endpoints.MapControllers();
+}
+);
 
 app.Run();
