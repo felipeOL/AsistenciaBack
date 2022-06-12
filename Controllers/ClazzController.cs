@@ -155,7 +155,7 @@ public class ClazzController : ControllerBase
 		var @class = this._context.Clazzs.Include(c => c.Users).Include(c => c.Course).Where(c => c.Id == request.ClazzId).FirstOrDefault();
 		if (@class is null)
 		{
-			return this.BadRequest($"La clase {request.ClazzId} no existe");
+			return this.BadRequest($"La clase  {request.ClazzId} no existe");
 		}
 		if (@class.Users.Contains(currentUser))
 		{
@@ -165,25 +165,5 @@ public class ClazzController : ControllerBase
 		currentUser.Clazzs.Add(@class);
 		await this._context.SaveChangesAsync();
 		return this.Ok($"Se marcó la asistencia del usuario {currentUser.Id} a la clase {request.ClazzId}");
-	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("obtenerAsistencias"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult<IEnumerable<AttendanceResponse>>> GetAttendances([FromBody] AttendRequest request)
-	{
-		var @class = this._context.Clazzs.Include(c => c.Users).Include(c => c.Course).ThenInclude(co => co.Users).Where(c => c.Id == request.ClazzId).FirstOrDefault();
-		if (@class is null)
-		{
-			return this.BadRequest($"La clase {request.ClazzId} no existe");
-		}
-		var result = new List<AttendanceResponse>();
-		foreach (var student in @class.Course.Users)
-		{
-			var attendanceResponse = new AttendanceResponse
-			{
-				Email = student.Email,
-				HasAttend = @class.Users.Contains(student)
-			};
-			result.Add(attendanceResponse);
-		}
-		return result;
 	}
 }
