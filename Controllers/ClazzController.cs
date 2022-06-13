@@ -177,12 +177,16 @@ public class ClazzController : ControllerBase
 		var result = new List<AttendanceResponse>();
 		foreach (var student in @class.Course.Users)
 		{
-			var attendanceResponse = new AttendanceResponse
+			var roles = await this._userManager.GetRolesAsync(student);
+			if (roles.Contains("Student"))
 			{
-				Email = student.Email,
-				HasAttend = @class.Users.Contains(student)
-			};
-			result.Add(attendanceResponse);
+				var attendanceResponse = new AttendanceResponse
+				{
+					Email = student.Email,
+					HasAttend = @class.Users.Contains(student)
+				};
+				result.Add(attendanceResponse);
+			}
 		}
 		return result;
 	}
