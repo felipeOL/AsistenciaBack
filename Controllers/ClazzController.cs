@@ -186,4 +186,35 @@ public class ClazzController : ControllerBase
 		}
 		return result;
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("marcarAsistencias"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult> MarkAttendances([FromBody] AttendanceRequest request)
+	{
+		var @class = this._context.Clazzs.Include(c => c.Users).Include(c => c.Course).ThenInclude(co => co.Users).Where(c => c.Id == request.ClazzId).FirstOrDefault();
+		if (@class is null)
+		{
+			return this.BadRequest($"La clase {request.ClazzId} no existe");
+		}
+		foreach (var attendanceResponse in request.AttendanceResponses)
+		{
+			var student = await this._context.Users.FindAsync(attendanceResponse.Email);
+			var check = @class.Users.Contains(student);
+			if (attendanceResponse.HasAttend)
+			{
+				if (!check)
+				{
+					@class.Users.Add(student);
+					student.Clazzs.Add(@class);
+				}
+			}
+			else
+			{
+				if (check)
+				{
+					@class.Users.Remove(student);
+					student.Clazzs.Remove(@class);
+				}
+			}
+		}
+		return this.Ok($"Se actualizó la lista de asistencia de la clase del día {@class.Date} del curso {@class.Course.Name}");
+	}
 }
