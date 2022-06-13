@@ -215,6 +215,7 @@ public class ClazzController : ControllerBase
 				}
 			}
 		}
+		await this._context.SaveChangesAsync();
 		return this.Ok($"Se actualizó la lista de asistencia de la clase del día {@class.Date} del curso {@class.Course.Name}");
 	}
 }
