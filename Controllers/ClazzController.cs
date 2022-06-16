@@ -111,7 +111,12 @@ public class ClazzController : ControllerBase
 					Id = c.Id,
 					Room = c.Room,
 					Mode = c.Mode,
-					Block = c.Block,
+					BlockResponse = new BlockResponse
+					{
+						Id = c.Block.Id,
+						Day = c.Block.Day,
+						Time = c.Block.Time
+					},
 					Date = c.Date,
 					Course = this._mapper.Map<CourseResponse>(course),
 					IsAttended = c.Users.Contains(currentUser),

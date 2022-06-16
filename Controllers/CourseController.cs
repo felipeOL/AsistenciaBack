@@ -32,7 +32,22 @@ public class CourseController : ControllerBase
 		{
 			return this.BadRequest($"El usuario {user.UserName} no es un profesor");
 		}
-		var course = this._mapper.Map<Course>(request);
+		var course = new Course
+		{
+			Code = request.Code,
+			Name = request.Name,
+			Section = request.Section,
+			Semester = request.Semester,
+			Year = request.Year
+		};
+		foreach (var block in request.BlockRequests)
+		{
+			course.Blocks.Add(new Block
+			{
+				Day = block.Day,
+				Time = block.Time
+			});
+		}
 		if (course is null)
 		{
 			return this.StatusCode(StatusCodes.Status500InternalServerError, "Error al mapear el curso nuevo");
@@ -76,7 +91,27 @@ public class CourseController : ControllerBase
 		var courseResponses = new List<CourseResponse>();
 		foreach (var course in courses)
 		{
-			var courseResponse = this._mapper.Map<CourseResponse>(course);
+			//var courseResponse = this._mapper.Map<CourseResponse>(course);
+			var courseResponse = new CourseResponse
+			{
+				Id = course.Id,
+				Code = course.Code,
+				Name = course.Name,
+				Section = course.Section,
+				Semester = course.Semester,
+				Year = course.Year
+			};
+			foreach (var block in course.Blocks)
+			{
+				courseResponse.BlockResponses.Add(
+					new BlockResponse
+					{
+						Id = block.Id,
+						Day = block.Day,
+						Time = block.Time
+					}
+				);
+			}
 			foreach (var user in course.Users)
 			{
 				var roles = await this._userManager.GetRolesAsync(user);
