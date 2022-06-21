@@ -86,7 +86,7 @@ public class CourseController : ControllerBase
 		}
 		else
 		{
-			courses = this._context.Courses.Include(c => c.Users).Where(c => c.Users.Contains(currentUser)).ToList();
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
 		}
 		var courseResponses = new List<CourseResponse>();
 		foreach (var course in courses)
