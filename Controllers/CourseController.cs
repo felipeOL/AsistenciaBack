@@ -169,4 +169,34 @@ public class CourseController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok($"Estudiante con {request.StudentId} ha sido inscrito con éxito al curso {request.CourseId}");
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpGet("horarios"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<BlockScheduleResponse>>> GetSchedule()
+	{
+		if (this.HttpContext.User.Identity is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
+		}
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
+		if (currentUser is null)
+		{
+			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
+		}
+		var courses = this._context.Courses.Include(c => c.Users).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
+		var blockScheduleResponses = new List<BlockScheduleResponse>();
+		foreach (var course in courses)
+		{
+			foreach (var block in course.Blocks)
+			{
+				var blockScheduleResponse = new BlockScheduleResponse
+				{
+					CourseName = course.Name,
+					CourseSection = course.Section,
+					Day = block.Day,
+					Time = block.Time
+				};
+				blockScheduleResponses.Add(blockScheduleResponse);
+			}
+		}
+		return blockScheduleResponses;
+	}
 }
