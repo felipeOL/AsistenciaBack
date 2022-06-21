@@ -169,7 +169,7 @@ public class CourseController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return this.Ok($"Estudiante con {request.StudentId} ha sido inscrito con éxito al curso {request.CourseId}");
 	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpGet("horarios"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpGet("horarios"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<BlockScheduleResponse>>> GetSchedule()
 	{
 		if (this.HttpContext.User.Identity is null)
@@ -185,12 +185,24 @@ public class CourseController : ControllerBase
 		var blockScheduleResponses = new List<BlockScheduleResponse>();
 		foreach (var course in courses)
 		{
+			UserResponse teacher = null;
+			foreach (var user in course.Users)
+			{
+				var roles = await this._userManager.GetRolesAsync(user);
+				if (roles.Contains("Teacher"))
+				{
+					teacher = this._mapper.Map<UserResponse>(user);
+					break;
+				}
+			}
 			foreach (var block in course.Blocks)
 			{
 				var blockScheduleResponse = new BlockScheduleResponse
 				{
 					CourseName = course.Name,
 					CourseSection = course.Section,
+					TeacherName = teacher.Name,
+					TeacherEmail = teacher.Email,
 					Day = block.Day,
 					Time = block.Time
 				};
