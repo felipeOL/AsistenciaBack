@@ -19,7 +19,7 @@ public class CourseController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest request)
 	{
-		var user = await this._userManager.FindByIdAsync(request.ProfessorId);
+		var user = await this._userManager.FindByIdAsync(request.TeacherId);
 		var course = new Course
 		{
 			Code = request.Code,
@@ -85,7 +85,7 @@ public class CourseController : ControllerBase
 				var roles = await this._userManager.GetRolesAsync(user);
 				if (roles.Contains("Teacher"))
 				{
-					courseResponse.Professor = new UserResponse
+					courseResponse.Teacher = new UserResponse
 					{
 						Email = user.Email,
 						Name = user.Name,
@@ -144,7 +144,7 @@ public class CourseController : ControllerBase
 						Email = user.Email,
 						Name = user.Name,
 						Rut = user.Rut,
-						Role = roles[0]
+						Role = "Teacher"
 					};
 					break;
 				}

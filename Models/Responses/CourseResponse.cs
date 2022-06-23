@@ -19,5 +19,5 @@ public class CourseResponse
 	[JsonPropertyName("anio")]
 	public DateTimeOffset Year { get; set; }
 	[JsonPropertyName("profesor")]
-	public UserResponse? Professor { get; set; }
+	public UserResponse? Teacher { get; set; }
 }

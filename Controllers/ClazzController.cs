@@ -24,9 +24,9 @@ public class ClazzController : ControllerBase
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		if (currentRoles.Contains("Teacher"))
 		{
-			var professor = this._context.Users.Include(u => u.Courses).Where(u => u.Id == currentUser.Id).FirstOrDefault();
-			var professorCourses = professor.Courses;
-			var courseQuery = professorCourses.Where(pc => pc.Id == request.CourseId).FirstOrDefault();
+			var teacher = this._context.Users.Include(u => u.Courses).Where(u => u.Id == currentUser.Id).FirstOrDefault();
+			var teacherCourses = teacher.Courses;
+			var courseQuery = teacherCourses.Where(pc => pc.Id == request.CourseId).FirstOrDefault();
 			if (courseQuery is null)
 			{
 				return this.BadRequest($"El profesor {currentUser.Id} no se encuentra asociado al curso {request.CourseId}");
