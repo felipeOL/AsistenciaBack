@@ -25,10 +25,6 @@ public class ClazzController : ControllerBase
 		if (currentRoles.Contains("Teacher"))
 		{
 			var professor = this._context.Users.Include(u => u.Courses).Where(u => u.Id == currentUser.Id).FirstOrDefault();
-			if (professor is null)
-			{
-				return this.StatusCode(StatusCodes.Status500InternalServerError, $"El profesor {currentUser.Id} retornó nulo");
-			}
 			var professorCourses = professor.Courses;
 			var courseQuery = professorCourses.Where(pc => pc.Id == request.CourseId).FirstOrDefault();
 			if (courseQuery is null)
@@ -47,10 +43,8 @@ public class ClazzController : ControllerBase
 			Mode = request.Mode,
 			Date = request.Date
 		};
-		if (@class is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "Error al mapear la clase");
-		}
+		var block = await this._context.Blocks.FindAsync(request.BlockRequest.Id);
+		@class.Block = block;
 		@class.Course = course;
 		course.Clazzs.Add(@class);
 		await this._context.Clazzs.AddAsync(@class);

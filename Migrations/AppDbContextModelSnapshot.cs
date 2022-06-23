@@ -35,7 +35,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("bloque");
+                    b.ToTable("bloque", (string)null);
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.Clazz", b =>
@@ -67,7 +67,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("clase");
+                    b.ToTable("clase", (string)null);
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.Course", b =>
@@ -97,7 +97,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("curso");
+                    b.ToTable("curso", (string)null);
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.User", b =>
@@ -184,7 +184,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasIndex("CoursesId");
 
-                    b.ToTable("BlockCourse");
+                    b.ToTable("BlockCourse", (string)null);
                 });
 
             modelBuilder.Entity("ClazzUser", b =>
@@ -199,7 +199,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ClazzUser");
+                    b.ToTable("ClazzUser", (string)null);
                 });
 
             modelBuilder.Entity("CourseUser", b =>
@@ -214,7 +214,7 @@ namespace AsistenciaBack.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("CourseUser");
+                    b.ToTable("CourseUser", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
