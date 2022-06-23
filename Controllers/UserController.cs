@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -15,13 +14,11 @@ public class UserController : ControllerBase
 	private readonly IConfiguration _configuration;
 	private readonly RoleManager<IdentityRole> _roleManager;
 	private readonly UserManager<User> _userManager;
-	private readonly IMapper _mapper;
-	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IMapper mapper)
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
 	{
 		this._configuration = configuration;
 		this._roleManager = roleManager;
 		this._userManager = userManager;
-		this._mapper = mapper;
 	}
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
@@ -124,7 +121,12 @@ public class UserController : ControllerBase
 		foreach (var user in users)
 		{
 			var roles = await this._userManager.GetRolesAsync(user);
-			var userResponse = this._mapper.Map<UserResponse>(user);
+			var userResponse = new UserResponse
+			{
+				Email = user.Email,
+				Name = user.Name,
+				Rut = user.Rut
+			};
 			userResponse.Role = roles[0];
 			userResponses.Add(userResponse);
 		}

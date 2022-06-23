@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -12,26 +11,15 @@ public class CourseController : ControllerBase
 {
 	private readonly AppDbContext _context;
 	private readonly UserManager<User> _userManager;
-	private readonly IMapper _mapper;
-	public CourseController(AppDbContext context, UserManager<User> userManager, IMapper mapper)
+	public CourseController(AppDbContext context, UserManager<User> userManager)
 	{
 		this._context = context;
 		this._userManager = userManager;
-		this._mapper = mapper;
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator"), HttpPost("crear"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.ProfessorId);
-		if (user is null)
-		{
-			return this.BadRequest($"El usuario {request.ProfessorId} no existe");
-		}
-		var roles = await this._userManager.GetRolesAsync(user);
-		if (!roles.Contains("Teacher"))
-		{
-			return this.BadRequest($"El usuario {user.UserName} no es un profesor");
-		}
 		var course = new Course
 		{
 			Code = request.Code,
@@ -48,16 +36,8 @@ public class CourseController : ControllerBase
 				Time = block.Time
 			});
 		}
-		if (course is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "Error al mapear el curso nuevo");
-		}
 		course.Users.Add(user);
 		user.Courses.Add(course);
-		if (this._context.Courses is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
-		}
 		await this._context.Courses.AddAsync(course);
 		await this._context.SaveChangesAsync();
 		return this.Ok($"Curso con nombre {request.Name} guardado con éxito");
@@ -65,19 +45,7 @@ public class CourseController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher,Student"), HttpGet("todos"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<CourseResponse>>> GetAllCourses()
 	{
-		if (this._context.Courses is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "El contexto tiene la lista de cursos nula");
-		}
-		if (this.HttpContext.User.Identity is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
-		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
-		if (currentUser is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
-		}
 		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
 		List<Course> courses;
 		if (currentRoles.Contains("Administrator"))
@@ -117,8 +85,13 @@ public class CourseController : ControllerBase
 				var roles = await this._userManager.GetRolesAsync(user);
 				if (roles.Contains("Teacher"))
 				{
-					courseResponse.Professor = this._mapper.Map<UserResponse>(user);
-					courseResponse.Professor.Role = "Teacher";
+					courseResponse.Professor = new UserResponse
+					{
+						Email = user.Email,
+						Name = user.Name,
+						Rut = user.Rut,
+						Role = "Teacher"
+					};
 					break;
 				}
 			}
@@ -129,24 +102,7 @@ public class CourseController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("agregarEstudiante"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> AddStudentToCourse([FromBody] AddStudentToCourse request)
 	{
-		if (this.HttpContext.User.Identity is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
-		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
-		if (currentUser is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
-		}
-		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
-		if (!currentRoles.Contains("Teacher"))
-		{
-			return this.BadRequest($"El usuario actual {currentUser.Id} no es un profesor");
-		}
-		if (this._context.Courses is null)
-		{
-			return this.BadRequest($"El contexto tiene la lista de cursos nula");
-		}
 		var course =
 			this._context.Courses
 				.Include(c => c.Users)
@@ -172,15 +128,7 @@ public class CourseController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpGet("horarios"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<BlockScheduleResponse>>> GetSchedule()
 	{
-		if (this.HttpContext.User.Identity is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "El User.Identity es nulo");
-		}
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
-		if (currentUser is null)
-		{
-			return this.StatusCode(StatusCodes.Status500InternalServerError, "Usuario actual no encontrado");
-		}
 		var courses = this._context.Courses.Include(c => c.Users).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
 		var blockScheduleResponses = new List<BlockScheduleResponse>();
 		foreach (var course in courses)
@@ -191,7 +139,13 @@ public class CourseController : ControllerBase
 				var roles = await this._userManager.GetRolesAsync(user);
 				if (roles.Contains("Teacher"))
 				{
-					teacher = this._mapper.Map<UserResponse>(user);
+					teacher = new UserResponse
+					{
+						Email = user.Email,
+						Name = user.Name,
+						Rut = user.Rut,
+						Role = roles[0]
+					};
 					break;
 				}
 			}

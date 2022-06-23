@@ -14,7 +14,7 @@ public class Clazz
 	[JsonPropertyName("modalidad"), Required]
 	public string Mode { get; set; } = string.Empty;
 	[JsonPropertyName("bloque"), Required]
-	public Block Block { get; set; }
+	public Block? Block { get; set; }
 	[JsonPropertyName("fecha"), Required]
 	public DateTimeOffset Date { get; set; }
 	[JsonPropertyName("curso"), Required]

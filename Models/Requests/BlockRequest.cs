@@ -1,11 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace AsistenciaBack.Model.Request;
 
 public class BlockRequest
 {
+	[JsonPropertyName("id")]
+	public int Id { get; set; }
 	[JsonPropertyName("dia")]
 	public string Day { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
