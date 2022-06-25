@@ -87,6 +87,10 @@ public class ClazzController : ControllerBase
 				.ToList();
 			response.AddRange(classes);
 		}
+		if (!response.Any())
+		{
+			return this.NotFound("Usuario sin clases futuras");
+		}
 		return response;
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student"), HttpPost("asistir"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -133,6 +137,10 @@ public class ClazzController : ControllerBase
 				};
 				result.Add(attendanceResponse);
 			}
+		}
+		if (!result.Any())
+		{
+			return this.NotFound("Usuario sin asistencias");
 		}
 		return result;
 	}

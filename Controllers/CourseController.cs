@@ -97,6 +97,10 @@ public class CourseController : ControllerBase
 			}
 			courseResponses.Add(courseResponse);
 		}
+		if (!courseResponses.Any())
+		{
+			return this.NotFound("Usuario sin cursos inscritos");
+		}
 		return courseResponses;
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("agregarEstudiante"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
