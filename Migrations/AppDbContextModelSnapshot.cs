@@ -19,15 +19,33 @@ namespace AsistenciaBack.Migrations
                 .HasAnnotation("ProductVersion", "6.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("AsistenciaBack.Model.Block", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Time")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("bloque");
+                });
+
             modelBuilder.Entity("AsistenciaBack.Model.Clazz", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Block")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("BlockId")
+                        .HasColumnType("int");
 
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
@@ -45,6 +63,8 @@ namespace AsistenciaBack.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BlockId");
+
                     b.HasIndex("CourseId");
 
                     b.ToTable("clase");
@@ -55,10 +75,6 @@ namespace AsistenciaBack.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    b.Property<string>("Block")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -82,6 +98,30 @@ namespace AsistenciaBack.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("curso");
+                });
+
+            modelBuilder.Entity("AsistenciaBack.Model.Period", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("End")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("Start")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("periodo");
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.User", b =>
@@ -154,6 +194,21 @@ namespace AsistenciaBack.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("BlockCourse", b =>
+                {
+                    b.Property<int>("BlocksId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CoursesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BlocksId", "CoursesId");
+
+                    b.HasIndex("CoursesId");
+
+                    b.ToTable("BlockCourse");
                 });
 
             modelBuilder.Entity("ClazzUser", b =>
@@ -316,13 +371,36 @@ namespace AsistenciaBack.Migrations
 
             modelBuilder.Entity("AsistenciaBack.Model.Clazz", b =>
                 {
+                    b.HasOne("AsistenciaBack.Model.Block", "Block")
+                        .WithMany("Clazzs")
+                        .HasForeignKey("BlockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AsistenciaBack.Model.Course", "Course")
                         .WithMany("Clazzs")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Block");
+
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("BlockCourse", b =>
+                {
+                    b.HasOne("AsistenciaBack.Model.Block", null)
+                        .WithMany()
+                        .HasForeignKey("BlocksId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AsistenciaBack.Model.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CoursesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClazzUser", b =>
@@ -404,6 +482,11 @@ namespace AsistenciaBack.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AsistenciaBack.Model.Block", b =>
+                {
+                    b.Navigation("Clazzs");
                 });
 
             modelBuilder.Entity("AsistenciaBack.Model.Course", b =>
