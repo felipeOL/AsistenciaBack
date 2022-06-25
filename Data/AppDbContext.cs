@@ -9,5 +9,5 @@ public class AppDbContext : IdentityDbContext<User>
 	public DbSet<Block>? Blocks { get; set; }
 	public DbSet<Course>? Courses { get; set; }
 	public DbSet<Clazz>? Clazzs { get; set; }
-
+	public DbSet<Period>? Periods { get; set; }
 }
