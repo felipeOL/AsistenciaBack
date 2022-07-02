@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AsistenciaBack.Migrations
 {
-    public partial class RefactorInit : Migration
+    public partial class ElDiaDelJuicio : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -40,6 +40,8 @@ namespace AsistenciaBack.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Rut = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Name = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
@@ -70,6 +72,23 @@ namespace AsistenciaBack.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "bloque",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Day = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Time = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_bloque", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "curso",
                 columns: table => new
                 {
@@ -83,8 +102,7 @@ namespace AsistenciaBack.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Semester = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Block = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Year = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -220,6 +238,31 @@ namespace AsistenciaBack.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "BlockCourse",
+                columns: table => new
+                {
+                    BlocksId = table.Column<int>(type: "int", nullable: false),
+                    CoursesId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BlockCourse", x => new { x.BlocksId, x.CoursesId });
+                    table.ForeignKey(
+                        name: "FK_BlockCourse_bloque_BlocksId",
+                        column: x => x.BlocksId,
+                        principalTable: "bloque",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_BlockCourse_curso_CoursesId",
+                        column: x => x.CoursesId,
+                        principalTable: "curso",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "clase",
                 columns: table => new
                 {
@@ -229,18 +272,25 @@ namespace AsistenciaBack.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Mode = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Block = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CourseId = table.Column<int>(type: "int", nullable: true)
+                    BlockId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    CourseId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_clase", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_clase_bloque_BlockId",
+                        column: x => x.BlockId,
+                        principalTable: "bloque",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_clase_curso_CourseId",
                         column: x => x.CourseId,
                         principalTable: "curso",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -265,6 +315,32 @@ namespace AsistenciaBack.Migrations
                         name: "FK_CourseUser_curso_CoursesId",
                         column: x => x.CoursesId,
                         principalTable: "curso",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ClazzUser",
+                columns: table => new
+                {
+                    ClazzsId = table.Column<int>(type: "int", nullable: false),
+                    UsersId = table.Column<string>(type: "varchar(255)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ClazzUser", x => new { x.ClazzsId, x.UsersId });
+                    table.ForeignKey(
+                        name: "FK_ClazzUser_AspNetUsers_UsersId",
+                        column: x => x.UsersId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ClazzUser_clase_ClazzsId",
+                        column: x => x.ClazzsId,
+                        principalTable: "clase",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -308,9 +384,24 @@ namespace AsistenciaBack.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_BlockCourse_CoursesId",
+                table: "BlockCourse",
+                column: "CoursesId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_clase_BlockId",
+                table: "clase",
+                column: "BlockId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_clase_CourseId",
                 table: "clase",
                 column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClazzUser_UsersId",
+                table: "ClazzUser",
+                column: "UsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CourseUser_UsersId",
@@ -336,7 +427,10 @@ namespace AsistenciaBack.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "clase");
+                name: "BlockCourse");
+
+            migrationBuilder.DropTable(
+                name: "ClazzUser");
 
             migrationBuilder.DropTable(
                 name: "CourseUser");
@@ -345,7 +439,13 @@ namespace AsistenciaBack.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "clase");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "bloque");
 
             migrationBuilder.DropTable(
                 name: "curso");

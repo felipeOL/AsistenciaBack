@@ -11,7 +11,7 @@ public class ClazzRequest
 	[JsonPropertyName("modalidad")]
 	public string Mode { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
-	public string Block { get; set; } = string.Empty;
+	public BlockRequest? BlockRequest { get; set; }
 	[JsonPropertyName("fecha")]
 	public DateTimeOffset Date { get; set; }
 }

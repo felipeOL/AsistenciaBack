@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
@@ -15,13 +14,11 @@ public class UserController : ControllerBase
 	private readonly IConfiguration _configuration;
 	private readonly RoleManager<IdentityRole> _roleManager;
 	private readonly UserManager<User> _userManager;
-	private readonly IMapper _mapper;
-	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager, IMapper mapper)
+	public UserController(IConfiguration configuration, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
 	{
 		this._configuration = configuration;
 		this._roleManager = roleManager;
 		this._userManager = userManager;
-		this._mapper = mapper;
 	}
 	[HttpPost("registrar"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult> Register([FromBody] RegisterRequest request)
@@ -35,7 +32,7 @@ public class UserController : ControllerBase
 		{
 			Id = request.Email,
 			Rut = request.Rut,
-			UserName = request.Rut,
+			UserName = request.Email,
 			Email = request.Email,
 			Name = request.Name
 		};
@@ -82,7 +79,7 @@ public class UserController : ControllerBase
 		}
 		return this.Ok($"Usuario {request.Email} creado con éxito");
 	}
-	[HttpPost("login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[HttpPost(template: "login"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<TokenResponse>> Login([FromBody] LoginRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.Email);
@@ -124,10 +121,61 @@ public class UserController : ControllerBase
 		foreach (var user in users)
 		{
 			var roles = await this._userManager.GetRolesAsync(user);
-			var userResponse = this._mapper.Map<UserResponse>(user);
+			var userResponse = new UserResponse
+			{
+				Email = user.Email,
+				Name = user.Name,
+				Rut = user.Rut
+			};
 			userResponse.Role = roles[0];
 			userResponses.Add(userResponse);
 		}
+		if (!users.Any())
+		{
+			return this.NotFound("No hay alumnos");
+		}
 		return userResponses;
+	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("crearEstudiantesProfesor"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<BatchStudentResponse>>> BatchStudentRegister([FromBody] ICollection<string> requests)
+	{
+		var response = new List<BatchStudentResponse>();
+		foreach (var email in requests)
+		{
+			var check = await this._userManager.FindByIdAsync(email);
+			if (check is not null)
+			{
+				response.Add(new BatchStudentResponse
+				{
+					Email = email,
+					Result = "Error: el usuario ya existe",
+					HasCreated = false
+				});
+				continue;
+			}
+			var user = new User
+			{
+				Id = email,
+				UserName = email,
+				Email = email
+			};
+			var result = await this._userManager.CreateAsync(user, email);
+			response.Add(new BatchStudentResponse
+			{
+				Email = email,
+				Result = "OK",
+				HasCreated = true
+			});
+			if (!await this._roleManager.RoleExistsAsync("Student"))
+			{
+				_ = await this._roleManager.CreateAsync(new("Student"));
+			}
+			var studentResult = await this._userManager.AddToRoleAsync(user, "Student");
+			if (!studentResult.Succeeded)
+			{
+				return this.StatusCode(StatusCodes.Status500InternalServerError, $"Error al agregar el estudiante {email}");
+			}
+		}
+		return response;
 	}
 }
