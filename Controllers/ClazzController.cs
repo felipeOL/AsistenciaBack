@@ -57,10 +57,11 @@ public class ClazzController : ControllerBase
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		var courses = this._context.Courses.Include(c => c.Users).Where(c => c.Users.Contains(currentUser)).ToList();
 		var response = new List<ClazzResponse>();
+		var dateToCompare = DateTimeOffset.Parse(request.Date);
 		foreach (var course in courses)
 		{
 			var classes = this._context.Clazzs
-				.Where(c => c.Course != null && c.Course.Id == course.Id && DateTime.Compare(request.Date.Date, c.Date.Date) >= 0)
+				.Where(c => c.Course != null && c.Course.Id == course.Id && DateTime.Compare(dateToCompare.Date, c.Date.Date) >= 0)
 				.Select(c => new ClazzResponse
 				{
 					Id = c.Id,
