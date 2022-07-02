@@ -11,7 +11,7 @@ public class ClazzResponse
 	[JsonPropertyName("modalidad")]
 	public string Mode { get; set; } = string.Empty;
 	[JsonPropertyName("bloque")]
-	public string Block { get; set; } = string.Empty;
+	public BlockResponse? BlockResponse { get; set; }
 	[JsonPropertyName("fecha")]
 	public DateTimeOffset Date { get; set; }
 	[JsonPropertyName("asistio")]
