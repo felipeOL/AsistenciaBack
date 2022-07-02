@@ -52,15 +52,16 @@ public class ClazzController : ControllerBase
 		return this.Ok($"Clase con fecha {request.Date} guardada con éxito en el curso {request.CourseId}");
 	}
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
-	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromQuery] GetStudentClassesFromDate request)
+	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromBody] GetStudentClassesFromDate request)
 	{
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		var courses = this._context.Courses.Include(c => c.Users).Where(c => c.Users.Contains(currentUser)).ToList();
 		var response = new List<ClazzResponse>();
+		var dateToCompare = DateTimeOffset.Parse(request.Date);
 		foreach (var course in courses)
 		{
 			var classes = this._context.Clazzs
-				.Where(c => c.Course != null && c.Course.Id == course.Id && c.Date.Date >= request.Date.Date)
+				.Where(c => c.Course != null && c.Course.Id == course.Id && DateTime.Compare(dateToCompare.Date, c.Date.Date) <= 0)
 				.Select(c => new ClazzResponse
 				{
 					Id = c.Id,

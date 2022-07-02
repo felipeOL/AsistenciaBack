@@ -11,7 +11,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-ARG PASSWORD
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV DATABASE_PROD=
 ENV TOKEN=
