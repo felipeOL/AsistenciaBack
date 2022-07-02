@@ -20,13 +20,19 @@ public class CourseController : ControllerBase
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.TeacherId);
+		var period = await this._context.Periods.FindAsync(request.PeriodId);
+		if (period is null)
+		{
+			return this.BadRequest($"El semestre con ID {request.PeriodId} no existe");
+		}
 		var course = new Course
 		{
 			Code = request.Code,
 			Name = request.Name,
 			Section = request.Section,
 			Semester = request.Semester,
-			Year = request.Year
+			Year = request.Year,
+			Period = period
 		};
 		foreach (var block in request.BlockRequests)
 		{
@@ -54,7 +60,7 @@ public class CourseController : ControllerBase
 		}
 		else
 		{
-			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
 		}
 		var courseResponses = new List<CourseResponse>();
 		foreach (var course in courses)
@@ -67,6 +73,7 @@ public class CourseController : ControllerBase
 				Name = course.Name,
 				Section = course.Section,
 				Semester = course.Semester,
+				PeriodId = course.Period.Id,
 				Year = course.Year
 			};
 			foreach (var block in course.Blocks)

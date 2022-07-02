@@ -54,6 +54,7 @@ public class ClazzController : ControllerBase
 	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Student,Teacher"), HttpPost("todosDesdeFecha"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<ClazzResponse>>> GetAllClazzsFromDate([FromQuery] GetStudentClassesFromDate request)
 	{
+		Console.WriteLine($"Fecha del request {request.Date}");
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
 		var courses = this._context.Courses.Include(c => c.Users).Where(c => c.Users.Contains(currentUser)).ToList();
 		var response = new List<ClazzResponse>();
