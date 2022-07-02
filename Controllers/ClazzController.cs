@@ -61,7 +61,7 @@ public class ClazzController : ControllerBase
 		foreach (var course in courses)
 		{
 			var classes = this._context.Clazzs
-				.Where(c => c.Course != null && c.Course.Id == course.Id && DateTime.Compare(dateToCompare.Date, c.Date.Date) >= 0)
+				.Where(c => c.Course != null && c.Course.Id == course.Id && DateTime.Compare(dateToCompare.Date, c.Date.Date) <= 0)
 				.Select(c => new ClazzResponse
 				{
 					Id = c.Id,
