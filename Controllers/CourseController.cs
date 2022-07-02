@@ -176,4 +176,54 @@ public class CourseController : ControllerBase
 		}
 		return blockScheduleResponses;
 	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Teacher"), HttpPost("cargarEstudiantesProfesor"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<BatchStudentResponse>>> BatchStudentSignUp([FromBody] BatchStudentSignUpRequest request)
+	{
+		var course = this._context.Courses
+			.Include(c => c.Users)
+			.Where(c => c.Id == request.CourseId).FirstOrDefault();
+		if (course is null)
+		{
+			return this.BadRequest($"El curso con ID {request.CourseId} no existe");
+		}
+		var response = new List<BatchStudentResponse>();
+		foreach (var studentEmail in request.Students)
+		{
+			var student = await this._userManager.FindByIdAsync(studentEmail);
+			if (student is null)
+			{
+				response.Add(new BatchStudentResponse
+				{
+					Email = studentEmail,
+					Result = "Estudiante no existe",
+					HasCreated = false
+				});
+			}
+			else
+			{
+				if (course.Users.Contains(student))
+				{
+					response.Add(new BatchStudentResponse
+					{
+						Email = studentEmail,
+						Result = "Estudiante ya está inscrito",
+						HasCreated = false
+					});
+				}
+				else
+				{
+					course.Users.Add(student);
+					student.Courses.Add(course);
+					response.Add(new BatchStudentResponse
+					{
+						Email = studentEmail,
+						Result = "OK",
+						HasCreated = true
+					});
+				}
+			}
+		}
+		await this._context.SaveChangesAsync();
+		return response;
+	}
 }
