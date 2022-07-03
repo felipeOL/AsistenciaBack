@@ -56,7 +56,7 @@ public class CourseController : ControllerBase
 		List<Course> courses;
 		if (currentRoles.Contains("Administrator"))
 		{
-			courses = this._context.Courses.Include(c => c.Users).ToList();
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).ToList();
 		}
 		else
 		{
