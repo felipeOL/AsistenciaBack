@@ -226,7 +226,7 @@ public class CourseController : ControllerBase
 		await this._context.SaveChangesAsync();
 		return response;
 	}
-	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher,Student"), HttpGet("todosDesdePeriodo"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher,Student"), HttpPost("todosDesdePeriodo"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
 	public async Task<ActionResult<IEnumerable<CourseResponse>>> GetAllCoursesFromAPeriod([FromBody] int request)
 	{
 		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
