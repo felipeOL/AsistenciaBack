@@ -25,4 +25,6 @@ public class Course
 	public virtual ICollection<User> Users { get; set; } = new HashSet<User>();
 	[JsonPropertyName("clases"), Required]
 	public virtual ICollection<Clazz> Clazzs { get; set; } = new HashSet<Clazz>();
+	[JsonPropertyName("periodo"), Required]
+	public virtual Period? Period { get; set; }
 }

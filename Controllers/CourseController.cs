@@ -20,13 +20,19 @@ public class CourseController : ControllerBase
 	public async Task<ActionResult> CreateCourse([FromBody] CourseRequest request)
 	{
 		var user = await this._userManager.FindByIdAsync(request.TeacherId);
+		var period = await this._context.Periods.FindAsync(request.PeriodId);
+		if (period is null)
+		{
+			return this.BadRequest($"El semestre con ID {request.PeriodId} no existe");
+		}
 		var course = new Course
 		{
 			Code = request.Code,
 			Name = request.Name,
 			Section = request.Section,
 			Semester = request.Semester,
-			Year = request.Year
+			Year = request.Year,
+			Period = period
 		};
 		foreach (var block in request.BlockRequests)
 		{
@@ -50,11 +56,11 @@ public class CourseController : ControllerBase
 		List<Course> courses;
 		if (currentRoles.Contains("Administrator"))
 		{
-			courses = this._context.Courses.Include(c => c.Users).ToList();
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).ToList();
 		}
 		else
 		{
-			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser)).ToList();
 		}
 		var courseResponses = new List<CourseResponse>();
 		foreach (var course in courses)
@@ -67,6 +73,7 @@ public class CourseController : ControllerBase
 				Name = course.Name,
 				Section = course.Section,
 				Semester = course.Semester,
+				PeriodId = course.Period.Id,
 				Year = course.Year
 			};
 			foreach (var block in course.Blocks)
@@ -218,5 +225,67 @@ public class CourseController : ControllerBase
 		}
 		await this._context.SaveChangesAsync();
 		return response;
+	}
+	[Authorize(AuthenticationSchemes = "Bearer", Roles = "Administrator,Teacher,Student"), HttpPost("todosDesdePeriodo"), Produces("application/json"), ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest), ProducesResponseType(StatusCodes.Status500InternalServerError)]
+	public async Task<ActionResult<IEnumerable<CourseResponse>>> GetAllCoursesFromAPeriod([FromBody] int request)
+	{
+		var currentUser = await this._userManager.FindByIdAsync(this.HttpContext.User.Identity.Name);
+		var currentRoles = await this._userManager.GetRolesAsync(currentUser);
+		List<Course> courses;
+		if (currentRoles.Contains("Administrator"))
+		{
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).Where(c => c.Period.Id == request).ToList();
+		}
+		else
+		{
+			courses = this._context.Courses.Include(c => c.Users).Include(c => c.Period).Include(c => c.Blocks).Where(c => c.Users.Contains(currentUser) && c.Period.Id == request).ToList();
+		}
+		var courseResponses = new List<CourseResponse>();
+		foreach (var course in courses)
+		{
+			//var courseResponse = this._mapper.Map<CourseResponse>(course);
+			var courseResponse = new CourseResponse
+			{
+				Id = course.Id,
+				Code = course.Code,
+				Name = course.Name,
+				Section = course.Section,
+				Semester = course.Semester,
+				PeriodId = course.Period.Id,
+				Year = course.Year
+			};
+			foreach (var block in course.Blocks)
+			{
+				courseResponse.BlockResponses.Add(
+					new BlockResponse
+					{
+						Id = block.Id,
+						Day = block.Day,
+						Time = block.Time
+					}
+				);
+			}
+			foreach (var user in course.Users)
+			{
+				var roles = await this._userManager.GetRolesAsync(user);
+				if (roles.Contains("Teacher"))
+				{
+					courseResponse.Teacher = new UserResponse
+					{
+						Email = user.Email,
+						Name = user.Name,
+						Rut = user.Rut,
+						Role = "Teacher"
+					};
+					break;
+				}
+			}
+			courseResponses.Add(courseResponse);
+		}
+		if (!courseResponses.Any())
+		{
+			return this.NotFound("Usuario sin cursos inscritos");
+		}
+		return courseResponses;
 	}
 }

@@ -14,6 +14,8 @@ public class CourseRequest
 	public string Section { get; set; } = string.Empty;
 	[JsonPropertyName("semestre")]
 	public string Semester { get; set; } = string.Empty;
+	[JsonPropertyName("idperiodo")]
+	public int PeriodId { get; set; }
 	[JsonPropertyName("bloques")]
 	public virtual ICollection<BlockRequest> BlockRequests { get; set; } = new HashSet<BlockRequest>();
 	[JsonPropertyName("anio")]
